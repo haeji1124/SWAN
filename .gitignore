@@ -1,0 +1,27 @@
+# 저장소에는 사이트에 필요한 것만 올린다 (app · tools · docs · planning)
+
+# 디자인 원본 작업물(블렌더 파일·렌더 원본·영상, 약 770MB)과 처음 받은 시안들
+/design/
+/public/
+/hf_*
+/*.png
+/*.mp4
+/*.zip
+
+# 설치하면 생기는 것
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 빌드 결과
+app/web/dist/
+
+# 개발 DB와 올린 파일 (seed.py로 다시 만든다)
+app/server/data/
+
+# 그 밖
+.DS_Store
+Thumbs.db
+*.log

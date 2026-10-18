@@ -1,0 +1,91 @@
+import { useEffect, type ReactNode } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { DevUserPicker } from './components/DevUserPicker'
+import { FeedbackProvider } from './components/Feedback'
+import { TopNav } from './components/TopNav'
+import { MeProvider, useMe } from './lib/me'
+import { track } from './lib/track'
+import { Admin } from './pages/Admin'
+import { Apply } from './pages/Apply'
+import { Home } from './pages/Home'
+import { Placeholder } from './pages/Placeholder'
+import { Quiz } from './pages/Quiz'
+
+// 사이트에 처음 들어올 때 방문을 한 번 기록한다 (개발 모드의 StrictMode 이중 실행에도 한 번만)
+let visited = false
+
+function ScrollToTop() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (hash) document.querySelector(hash)?.scrollIntoView()
+    else window.scrollTo(0, 0)
+  }, [pathname, hash])
+  return null
+}
+
+/** 신청·수준 테스트 화면은 상단 메뉴 대신 자기 머리(로고 + 나가기)를 쓴다 (구현 전달 3장) */
+function Chrome({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/apply') || pathname.startsWith('/quiz')) return <>{children}</>
+  return (
+    <>
+      <TopNav />
+      <main className="pt-[88px]">{children}</main>
+    </>
+  )
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { me } = useMe()
+  if (me === null) return null
+  if (!me.logged_in || !me.is_admin) {
+    return (
+      <section className="page pt-24 pb-36">
+        <h1 className="font-display text-[40px] font-extrabold">관리자만 볼 수 있어요</h1>
+        <p className="mt-4 text-muted">관리자 권한이 필요하면 운영자에게 요청해 주세요.</p>
+      </section>
+    )
+  }
+  return <>{children}</>
+}
+
+export default function App() {
+  useEffect(() => {
+    if (visited) return
+    visited = true
+    track('visit', window.location.pathname)
+  }, [])
+
+  return (
+    <BrowserRouter>
+      <MeProvider>
+        <FeedbackProvider>
+          <ScrollToTop />
+          <Chrome>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/projects" element={<Placeholder title="완성작" path="/projects" phase={4} />} />
+              <Route path="/projects/new" element={<Placeholder title="완성작 올리기" path="/projects/new" phase={4} />} />
+              <Route path="/projects/:id" element={<Placeholder title="완성작 상세" path="/projects/:id" phase={4} />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/apply" element={<Apply />} />
+              <Route path="/toys" element={<Placeholder title="토이프로젝트" path="/toys" phase={5} />} />
+              <Route path="/ideas" element={<Placeholder title="아이디어 보드" path="/ideas" phase={5} />} />
+              <Route path="/making" element={<Placeholder title="이렇게 만들었어요" path="/making" phase={6} />} />
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminOnly>
+                    <Admin />
+                  </AdminOnly>
+                }
+              />
+              <Route path="*" element={<Placeholder title="없는 주소예요" path="404" phase={0} />} />
+            </Routes>
+          </Chrome>
+          <DevUserPicker />
+        </FeedbackProvider>
+      </MeProvider>
+    </BrowserRouter>
+  )
+}

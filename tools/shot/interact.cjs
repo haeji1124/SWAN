@@ -1,0 +1,24 @@
+const puppeteer = require('puppeteer-core');
+const wait = ms => new Promise(r => setTimeout(r, ms));
+(async () => {
+  const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new' });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1440, height: 900 });
+  await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  await page.goto('http://localhost:5174/#curriculum', { waitUntil: 'networkidle0' });
+  const click = async (text) => { const ok = await page.evaluate(t => { const b = [...document.querySelectorAll('#curriculum button')].find(b => b.textContent.includes(t)); if (b) b.click(); return !!b; }, text); await wait(350); return ok; };
+  const out = {};
+  out.unitsOpen4 = await page.$$eval('#curriculum ol li', l => l.length);
+  await click('AI가 짠 코드 읽고 검증하기');
+  out.unitDetail = await page.evaluate(() => [...document.querySelectorAll('#curriculum ul li')].map(l => l.textContent)[0]);
+  await click('깊어지기');
+  out.stage2 = await page.evaluate(() => [...document.querySelectorAll('#curriculum ol li button')].map(b => b.textContent));
+  await click('탐색 알고리즘');
+  out.filtered = await page.evaluate(() => ({ feature: document.querySelector('#curriculum [class*=\"text-[34px]\"]')?.textContent, cards: [...document.querySelectorAll('#curriculum .grid-cols-4 button')].map(b => b.querySelector('[class*="text-[19px]"]').textContent) }));
+  await click('Eight puzzle');
+  out.afterPick = await page.evaluate(() => document.querySelector('#curriculum [class*=\"text-[34px]\"]')?.textContent);
+  await click('전체');
+  out.all = await page.evaluate(() => document.querySelectorAll('#curriculum .grid-cols-4 button').length);
+  console.log(JSON.stringify(out, null, 1));
+  await browser.close();
+})();

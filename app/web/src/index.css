@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* 글꼴은 모두 사이트에 포함한다 (사내망이라 외부 글꼴 링크를 쓰지 않는다) */
+@import "pretendard/dist/web/static/Pretendard-Regular.css";
+@import "pretendard/dist/web/static/Pretendard-Medium.css";
+@import "pretendard/dist/web/static/Pretendard-SemiBold.css";
+@import "pretendard/dist/web/static/Pretendard-Bold.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+@font-face {
+  font-family: "NanumSquareRound";
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/NanumSquareRoundR.woff2") format("woff2");
+}
+@font-face {
+  font-family: "NanumSquareRound";
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/NanumSquareRoundB.woff2") format("woff2");
+}
+@font-face {
+  font-family: "NanumSquareRound";
+  font-weight: 800;
+  font-display: swap;
+  src: url("./assets/fonts/NanumSquareRoundEB.woff2") format("woff2");
+}
+
+/* 디자인 값은 여기 한곳에 모은다. 기준: SWAN/design/direction-a/구현-전달.md 1장 (방향 A · 개발자의 노트) */
+@theme {
+  --color-paper: #fbfaf7;
+  --color-ink: #1f2a44;
+  --color-ink-hover: #2e3b5a;
+  --color-ink-press: #131b2e;
+  --color-sky: #d6ecfb;
+  --color-sky-hover: #c3e0f6;
+  --color-sky-press: #afd4f0;
+  --color-line: #dfe3ea;
+  --color-dash: #c9d0dc;
+  --color-muted: #5b6273;
+  --color-mark: #7d93b0;
+  --color-surface: #ffffff;
+  --color-disabled: #e9edf3;
+  --color-disabled-ink: #9aa0ad;
+  --color-success: #2f6e55;
+  --color-success-bg: #e3f1ea;
+  --color-warning: #8a5d14;
+  --color-warning-bg: #f8eedb;
+  --color-error: #a43c30;
+  --color-error-bg: #f7e4e1;
+
+  --font-display: "NanumSquareRound", "Pretendard", sans-serif;
+  --font-sans: "Pretendard", "Malgun Gothic", sans-serif;
+  /* JetBrains Mono에는 한글이 없어서, 한글 주석은 Pretendard로 이어지게 한다 */
+  --font-mono: "JetBrains Mono", "Pretendard", monospace;
+
+  --radius-badge: 6px;
+  --radius-btn: 10px;
+  --radius-card: 12px;
+  --radius-dialog: 14px;
+  --radius-result: 16px;
+
+  --shadow-dialog: 0 12px 32px rgba(31, 42, 68, 0.14);
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* 한글은 단어 중간에서 줄을 바꾸지 않는다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 화면 좌우 96, 내용 폭 1248 (1440 기준) */
+.page {
+  max-width: calc(1248px + 2 * 96px);
+  margin-inline: auto;
+  padding-inline: 96px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* 짧은 확인 메시지: 오른쪽 위에서 8px 내려오며 나타남 */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 이름 띠 / 부서 띠: 서로 반대 방향으로 45초에 한 바퀴 */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-r {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+/* 스크롤 표시: 6px 위아래, 2초 반복 */
+@keyframes bob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 6px); }
+}
+
+/* 로고 둘레의 반짝임과 둥실 떠 있기 */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(20deg); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* 지식 주입: 강사 부리에서 솟은 코드 글자가 길(offset-path)을 따라 오리 머리로 들어가며 작아진다 */
+/* 한 바퀴(12개 × 0.5초 = 6초) 중 앞 25%(1.5초)만 움직이고 나머지는 숨어 있어서, 한 번에 3개쯤 보인다 */
+@keyframes knowledge {
+  0% { offset-distance: 0%; opacity: 0; transform: scale(0.5); }
+  4% { opacity: 1; transform: scale(1); }
+  19% { opacity: 1; transform: scale(0.9); }
+  25%, 100% { offset-distance: 100%; opacity: 0; transform: scale(0.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee { animation: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 수준 테스트 성장 단계 캐릭터의 평소 움직임과 콩 뛰기 (발밑 기준) */
+@keyframes breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-3px) scale(0.99, 1.025); }
+}
+@keyframes wobble {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.08, 0.9); }
+  55% { transform: translateY(-26px) scale(0.96, 1.05); }
+  85% { transform: translateY(0) scale(1.05, 0.94); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* 수준 테스트 결과 카드 뒤집기 (구현 전달 4장: Y축 180° 0.7s, perspective 1800px)
+   두 면을 한 칸에 겹쳐 두어 카드 높이는 긴 쪽을 따른다. 안 보이는 면은 반쯤 돌았을 때 숨겨 키보드로도 닿지 않게 한다 */
+.flip { perspective: 1800px; }
+.flip-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.flip.is-flipped .flip-inner { transform: rotateY(180deg); }
+.flip-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  transition: visibility 0s 0s;
+}
+.flip-back { transform: rotateY(180deg); }
+.flip:not(.is-flipped) .flip-back,
+.flip.is-flipped .flip-front {
+  visibility: hidden;
+  transition: visibility 0s 0.35s;
+}
+/* 움직임 줄이기: 돌리지 않고 앞뒤 면을 0.2s 교차 투명도로 바꾼다 */
+@media (prefers-reduced-motion: reduce) {
+  .flip.is-flipped .flip-inner, .flip .flip-back { transform: none; }
+  .flip .flip-face { transition: opacity 0.2s, visibility 0s 0s !important; }
+  .flip:not(.is-flipped) .flip-back, .flip.is-flipped .flip-front { opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0s 0.2s !important; }
+}
