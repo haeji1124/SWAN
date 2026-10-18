@@ -177,3 +177,23 @@ html {
   .flip .flip-face { transition: opacity 0.2s, visibility 0s 0s !important; }
   .flip:not(.is-flipped) .flip-back, .flip.is-flipped .flip-front { opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0s 0.2s !important; }
 }
+
+/* 완성작 하트: 누르면 톡 튄다 */
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+/* Toast UI Editor를 사이트 글꼴·색에 맞춘다 (자세한 설명 편집기·보기) */
+.swan-md .toastui-editor-contents {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--color-ink);
+}
+.swan-md .toastui-editor-contents h2 { font-size: 24px; border-bottom: 0; margin-top: 28px; }
+.swan-md .toastui-editor-contents code,
+.swan-md .toastui-editor-contents pre { font-family: var(--font-mono); }
+.swan-md .toastui-editor-defaultUI { border-color: var(--color-line); border-radius: 10px; }
+.swan-md-view .toastui-editor-contents { padding: 0; }

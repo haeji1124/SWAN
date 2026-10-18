@@ -57,7 +57,7 @@ WEEKDAYS = "월화수목금토일"
 
 
 @app.get("/api/home")
-def home(db: Session = Depends(get_db)):
+def home(user: Optional[User] = Depends(auth.current_user), db: Session = Depends(get_db)):
     """홈에 필요한 것을 한 번에: 모집 상태, 숫자와 띠, 커리큘럼."""
     cohort = auth.open_cohort(db)
     recruit = None
@@ -93,7 +93,7 @@ def home(db: Session = Depends(get_db)):
             "depts": len(depts),
         },
         "alumni_names": [a.name for a in alumni[:40]],
-        "showcase": projects_api.top_projects(db),  # 완성작 미리보기: 좋아요 많은 순 5개
+        "showcase": projects_api.top_projects(db, user),  # 완성작 미리보기: 좋아요 많은 순 5개
         "dept_names": depts,
         "units": [{"id": u.id, "stage": u.stage, "title": u.title, "content": u.content} for u in units],
         "projects": [

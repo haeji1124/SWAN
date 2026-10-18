@@ -25,6 +25,7 @@ import {
 } from '../lib/adminApi'
 import { ApiError } from '../lib/api'
 import { useMe } from '../lib/me'
+import { ProjectsAdmin } from './AdminProjects'
 import { QuizAdmin } from './AdminQuiz'
 import { track } from '../lib/track'
 
@@ -32,7 +33,7 @@ const MENU: { to: string; label: string; phase?: number }[] = [
   { to: 'cohorts', label: '기수' },
   { to: 'applicants', label: '신청자' },
   { to: 'alumni', label: '졸업생' },
-  { to: 'projects', label: '완성작 검수', phase: 4 },
+  { to: 'projects', label: '완성작 검수' },
   { to: 'toys', label: '토이프로젝트', phase: 5 },
   { to: 'ideas', label: '아이디어', phase: 5 },
   { to: 'quiz', label: '수준 테스트' },
@@ -78,6 +79,7 @@ export function Admin() {
           <Route path="applicants" element={<Applicants />} />
           <Route path="alumni" element={<AlumniPage />} />
           <Route path="quiz/*" element={<QuizAdmin />} />
+          <Route path="projects/*" element={<ProjectsAdmin />} />
           {MENU.filter((m) => m.phase).map((m) => (
             <Route
               key={m.to}

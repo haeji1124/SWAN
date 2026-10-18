@@ -35,7 +35,7 @@ export function Home() {
       <Hero data={data} load={load} />
       <Summary data={data} load={load} />
       <Numbers data={data} load={load} />
-      <Showcase />
+      <Showcase data={data} load={load} />
       <Instructor />
       <Curriculum data={data} load={load} />
       <Journey />

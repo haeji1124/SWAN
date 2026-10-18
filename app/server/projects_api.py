@@ -140,10 +140,10 @@ def published_rows(db: Session) -> list:
     ).all()
 
 
-def top_projects(db: Session, n: int = 5) -> list:
-    """홈 완성작 미리보기: 좋아요 많은 순 (같으면 최신)"""
-    items = cards(db, published_rows(db), None)
-    items.sort(key=lambda c: (-c["likes"], c["created_at"]), reverse=False)
+def top_projects(db: Session, user: Optional[User] = None, n: int = 5) -> list:
+    """홈 완성작 미리보기: 좋아요 많은 순 (같으면 최신). 내가 누른 하트도 함께 표시한다"""
+    items = cards(db, published_rows(db), user)
+    items.sort(key=lambda c: (c["likes"], c["created_at"]), reverse=True)
     return items[:n]
 
 

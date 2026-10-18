@@ -2,9 +2,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FrameCanvas, frameUrls, type FrameCanvasHandle } from '../../components/FrameCanvas'
-import { Mark, Placeholder, Section, SectionTitle } from '../../components/Section'
+import { Mark, Section, SectionTitle } from '../../components/Section'
+import { ProjectCard } from '../../components/ProjectParts'
 import { PrimaryAction } from '../../components/TopNav'
-import { VIRTUAL_INSTRUCTOR, VIRTUAL_SHOWCASE } from '../../data/virtual'
+import { VIRTUAL_INSTRUCTOR } from '../../data/virtual'
 import { CountUp, prefersReducedMotion } from '../../lib/motion'
 import { CHARACTER_FILTER } from './Hero'
 import { track } from '../../lib/track'
@@ -134,52 +135,43 @@ export function Numbers({ data, load }: { data: HomeData | null; load: HomeLoad 
 }
 
 /* ---------- 4. 완성작 미리보기 (가상 카드, Phase 4에서 실제 데이터로) ---------- */
-export function Showcase() {
-  const [first, ...rest] = VIRTUAL_SHOWCASE
+export function Showcase({ data, load }: { data: HomeData | null; load: HomeLoad }) {
+  // 좋아요 많은 순 5개 (서버 /api/home의 showcase). 첫 번째는 크게, 나머지는 오른쪽 2×2
+  const items = data?.showcase ?? []
+  const [first, ...rest] = items
   return (
     <Section name="home:04-showcase" className="page flex flex-col gap-12 pt-34 pb-30">
       <div className="flex items-end justify-between">
         <SectionTitle>졸업생이 만든 것들</SectionTitle>
-        <Link to="/projects" className="text-[17px] font-semibold underline-offset-4 hover:underline" onClick={() => track('click', 'home:showcase:all')}>
-          완성작 전체 보기 →
-        </Link>
-      </div>
-      <div className="grid grid-cols-[1.5fr_1fr_1fr] grid-rows-[auto_auto] gap-x-8 gap-y-10">
-        <Link to="/projects" data-reveal className="row-span-2 flex flex-col gap-4">
-          <Placeholder label="대표 그림 · 분류 화면 캡처" className="min-h-[520px] flex-1" />
-          <CardMeta {...first} big />
-        </Link>
-        {rest.map((p) => (
-          <Link key={p.title} to="/projects" data-reveal className="flex flex-col gap-3.5">
-            {p.effect ? (
-              <div className="flex h-[220px] flex-col justify-end gap-2.5 rounded-card bg-ink p-6 text-white">
-                <span className="text-[20px] leading-snug font-bold">{p.effect}</span>
-                <span className="text-[14px] text-white/75">자세히 보기 →</span>
-              </div>
-            ) : (
-              <Placeholder label="대표 그림" className="h-[220px]" />
-            )}
-            <CardMeta {...p} />
+        {items.length > 0 && (
+          <Link to="/projects" className="text-[17px] font-semibold underline-offset-4 hover:underline" onClick={() => track('click', 'home:showcase:all')}>
+            완성작 전체 보기 →
           </Link>
-        ))}
+        )}
       </div>
+      {!data ? (
+        <div className="flex min-h-[240px] items-center">
+          <DataNote load={load} what="완성작을" />
+        </div>
+      ) : !first ? (
+        // 0개 상태 (UI 체크리스트 06-2): 빈 칸 대신 곧 걸린다는 안내
+        <div data-reveal className="flex flex-col gap-3 border-y border-line py-16">
+          <p className="font-display text-[30px] font-extrabold">곧 졸업생들의 작품이 걸립니다</p>
+          <p className="text-[17px] text-muted">승인된 완성작이 생기면 이곳에 좋아요가 많은 순으로 보여요.</p>
+        </div>
+      ) : (
+        <div className={`grid gap-x-8 gap-y-10 ${rest.length ? 'grid-cols-[1.5fr_1fr_1fr] grid-rows-[auto_auto]' : 'grid-cols-[minmax(0,860px)]'}`}>
+          <div data-reveal className="row-span-2">
+            <ProjectCard p={first} big place="home:showcase" />
+          </div>
+          {rest.map((p) => (
+            <div key={p.id} data-reveal>
+              <ProjectCard p={p} place="home:showcase" />
+            </div>
+          ))}
+        </div>
+      )}
     </Section>
-  )
-}
-
-function CardMeta({ title, cohort, dept, likes, big }: { title: string; cohort: number; dept: string; likes: number; big?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3">
-      <div className="flex flex-col gap-1">
-        <span className={`font-bold ${big ? 'text-[26px]' : 'text-[19px]'}`}>{title}</span>
-        <span className="text-[14px] text-muted">
-          {cohort}기 · {dept}
-        </span>
-      </div>
-      <span className="font-mono text-[14px] whitespace-nowrap" aria-label={`좋아요 ${likes}개`}>
-        ♡ {likes}
-      </span>
-    </div>
   )
 }
 

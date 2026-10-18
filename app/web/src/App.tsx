@@ -9,6 +9,8 @@ import { Admin } from './pages/Admin'
 import { Apply } from './pages/Apply'
 import { Home } from './pages/Home'
 import { Placeholder } from './pages/Placeholder'
+import { ProjectForm } from './pages/ProjectForm'
+import { ProjectDetail, Projects } from './pages/Projects'
 import { Quiz } from './pages/Quiz'
 
 // 사이트에 처음 들어올 때 방문을 한 번 기록한다 (개발 모드의 StrictMode 이중 실행에도 한 번만)
@@ -64,9 +66,10 @@ export default function App() {
           <Chrome>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/projects" element={<Placeholder title="완성작" path="/projects" phase={4} />} />
-              <Route path="/projects/new" element={<Placeholder title="완성작 올리기" path="/projects/new" phase={4} />} />
-              <Route path="/projects/:id" element={<Placeholder title="완성작 상세" path="/projects/:id" phase={4} />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/new" element={<ProjectForm />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/projects/:id/edit" element={<ProjectForm />} />
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/apply" element={<Apply />} />
               <Route path="/toys" element={<Placeholder title="토이프로젝트" path="/toys" phase={5} />} />

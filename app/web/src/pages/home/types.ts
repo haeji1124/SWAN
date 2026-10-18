@@ -1,4 +1,6 @@
 // /api/home 응답
+import type { ProjectCard } from '../../lib/projectsApi'
+
 export type Unit = { id: number; stage: number; title: string; content: string }
 
 export type PracticeProject = {
@@ -29,6 +31,7 @@ export type HomeData = {
   dept_names: string[]
   units: Unit[]
   projects: PracticeProject[]
+  showcase: ProjectCard[] // 완성작 미리보기: 좋아요 많은 순 5개 (Phase 4)
 }
 
 /** 홈 데이터(/api/home) 상태: 불러오는 중 / 받음 / 실패. retry로 다시 부른다 */
