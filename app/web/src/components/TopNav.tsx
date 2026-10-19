@@ -34,7 +34,15 @@ export function TopNav() {
     >
       <div className="page flex h-[88px] items-center justify-between">
         <div className="flex items-center gap-14">
-          <Link to="/" className="flex items-baseline gap-2" onClick={() => track('click', 'nav:logo')}>
+          <Link
+            to="/"
+            className="flex items-baseline gap-2"
+            onClick={() => {
+              track('click', 'nav:logo')
+              // 이미 홈에 있으면 주소가 같아 아무 일도 안 일어나므로 맨 위로 올려 준다
+              if (window.location.pathname === '/' && !window.location.hash) window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
             <span className="font-mono text-[15px] text-mark">&gt;_</span>
             <span className="font-display text-[26px] font-extrabold tracking-[0.02em]">SWAN</span>
           </Link>
@@ -90,12 +98,12 @@ const useInlineShown = () =>
     () => inlineShown.size > 0,
   )
 
-/** 주 행동 버튼. place가 nav면 상단 메뉴용(섹션 버튼이 보이면 숨김), 아니면 섹션 안 버튼(보이는지 알림) */
-export function PrimaryAction({ place = 'nav', inverse = false }: { place?: string; inverse?: boolean }) {
-  const hidden = useInlineShown()
-  const box = useRef<HTMLSpanElement>(null)
+/** 화면 안의 주 버튼을 감싼 요소에 ref를 달면, 그 요소가 보이는 동안 상단 메뉴의 주 버튼을 숨긴다.
+ *  섹션 [신청하기](PrimaryAction)와 수준 테스트 결과의 [신청하기]·[다음 기수 알림 받기]가 쓴다 */
+export function useHideNavPrimary<T extends HTMLElement>(place: string, active = true) {
+  const box = useRef<T>(null)
   useEffect(() => {
-    if (place === 'nav' || !box.current) return
+    if (!active || !box.current) return
     // 메뉴(88px) 아래로 버튼이 조금이라도 보이면 '보임' (화면 아래에 걸칠 때도 두 개가 되지 않게)
     const io = new IntersectionObserver(([e]) => setInlineShown(place, e.isIntersecting), { rootMargin: '-88px 0px 0px 0px', threshold: 0 })
     io.observe(box.current)
@@ -103,7 +111,14 @@ export function PrimaryAction({ place = 'nav', inverse = false }: { place?: stri
       io.disconnect()
       setInlineShown(place, false)
     }
-  }, [place])
+  }, [place, active])
+  return box
+}
+
+/** 주 행동 버튼. place가 nav면 상단 메뉴용(섹션 버튼이 보이면 숨김), 아니면 섹션 안 버튼(보이는지 알림) */
+export function PrimaryAction({ place = 'nav', inverse = false }: { place?: string; inverse?: boolean }) {
+  const hidden = useInlineShown()
+  const box = useHideNavPrimary<HTMLSpanElement>(place, place !== 'nav')
   if (place === 'nav')
     return (
       <span

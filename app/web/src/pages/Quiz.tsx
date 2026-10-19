@@ -1,7 +1,7 @@
 // 수준 테스트 /quiz (Phase 3). "내 수준이 이 강의에 맞나?"에 3분 만에 답한다. 걸러 내기가 아니라 확신 주기.
 // 시작 → 1~4 보기 고르기 → 5 주관식 → 6 AI가 고친 코드에서 틀린 줄 고르기 → 결과(성장 단계 카드, 뒤집으면 문제별 해설) → 6번 해설(펼친 채로)
 // 정답은 서버만 안다: 제출하면 서버가 채점해 해설과 함께 돌려준다. 로그인 실패면 채점만 하고 기록하지 않는다.
-// 상단 메뉴 대신 로고 + 진행 표시 + [나가기]만 (구현 전달 3장). 어떤 결과든 신청을 막지 않는다.
+// 상단 메뉴는 그대로 두고(2026-10-19 사용자 요청, 처음엔 로고 + [나가기]만이었다) 그 아래 줄에 진행 표시 + [나가기]. 어떤 결과든 신청을 막지 않는다.
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
@@ -9,6 +9,7 @@ import { Code } from '../components/Code'
 import { useFeedback } from '../components/Feedback'
 import { Inline, RichText } from '../components/RichText'
 import { Mark } from '../components/Section'
+import { useHideNavPrimary } from '../components/TopNav'
 import { ApiError, postInterest } from '../lib/api'
 import { useMe } from '../lib/me'
 import {
@@ -161,21 +162,16 @@ export function Quiz() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="page flex h-[88px] items-center justify-between gap-8 border-b border-line">
-        <div className="flex items-baseline gap-6">
-          <Link to="/" className="flex items-baseline gap-2" onClick={() => track('click', 'quiz:logo')}>
-            <span className="font-mono text-[15px] text-mark">&gt;_</span>
-            <span className="font-display text-[26px] font-extrabold tracking-[0.02em]">SWAN</span>
-          </Link>
-          <span className="text-[17px] font-semibold text-muted">수준 테스트</span>
-        </div>
+    <div className="min-h-[calc(100vh-88px)] bg-paper">
+      {/* 상단 메뉴 바로 아래 얇은 줄: 어디인지 · 진행 · [나가기](풀던 중이면 한 번 더 묻는다) */}
+      <div className="page flex h-[64px] items-center justify-between gap-8 border-b border-line">
+        <span className="font-mono text-[14px] text-mark">// 수준 테스트</span>
         {typeof step === 'number' && <Progress at={step} total={total} />}
-        <button type="button" onClick={exit} className="text-[16px] font-semibold underline-offset-4 hover:underline">
+        <button type="button" onClick={exit} className="text-[15px] font-semibold underline-offset-4 hover:underline">
           나가기
         </button>
-      </header>
-      <main className="page pt-14 pb-32">{body}</main>
+      </div>
+      <div className="page pt-14 pb-32">{body}</div>
     </div>
   )
 }
@@ -555,6 +551,8 @@ function NextAction({ result, where }: { result: QuizResult; where: 'result' | '
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const interested = !!(me && me.logged_in && me.interested)
+  // 여기 주 버튼이 보이는 동안 상단 메뉴의 [신청하기]를 숨긴다 (주 버튼은 한 화면에 하나)
+  const box = useHideNavPrimary<HTMLDivElement>(`quiz:${where}`, !result.applied)
 
   const apply = (label: string) => (
     <Button
@@ -600,19 +598,19 @@ function NextAction({ result, where }: { result: QuizResult; where: 'result' | '
     )
   if (!result.recruiting)
     return (
-      <div className="flex flex-col items-start gap-3">
+      <div ref={box} className="flex flex-col items-start gap-3">
         <p className="text-[16px] text-muted">지금은 모집 기간이 아니에요.</p>
         {alert}
       </div>
     )
   if (result.stage.key === 'hatchling')
     return (
-      <div className="flex items-center gap-4">
+      <div ref={box} className="flex items-center gap-4">
         {alert}
         {apply('그래도 신청하기')}
       </div>
     )
-  return <div>{apply('신청하기')}</div>
+  return <div ref={box}>{apply('신청하기')}</div>
 }
 
 /* ================= 6번 해설 (펼친 채로) ================= */

@@ -27,10 +27,11 @@ function ScrollToTop() {
   return null
 }
 
-/** 신청·수준 테스트 화면은 상단 메뉴 대신 자기 머리(로고 + 나가기)를 쓴다 (구현 전달 3장) */
+/** 신청 화면은 상단 메뉴 대신 자기 머리(로고 + 나가기)를 쓴다 (구현 전달 3장).
+ *  수준 테스트는 처음엔 같았지만 다른 메뉴로 갈 수 없어 답답하다는 의견으로 상단 메뉴를 그대로 둔다 (2026-10-19) */
 function Chrome({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
-  if (pathname.startsWith('/apply') || pathname.startsWith('/quiz')) return <>{children}</>
+  if (pathname.startsWith('/apply')) return <>{children}</>
   return (
     <>
       <TopNav />

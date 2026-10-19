@@ -128,6 +128,7 @@ Phase 6에서 할 것 (claude-code-prompt.md 기준):
 - 시험: `tests/test_phase5.py` 15개 (모두 69개, 그림 첨부 포함). 화면 흐름 `tools/shot/phase5.cjs <url> <out>` — 개발 DB를 바꾸므로 끝나면 `seed.py`
 - 사용자 결정: 토이 글쓴이는 고치기·지우기·다시 열기까지 된다. 게시판 행동 버튼은 보조 버튼(주 버튼은 메뉴 [신청하기] 하나)
 - 아이디어 그림 첨부 (사용자 요청, devlog 19단계): 3장·5MB·그림만, 창에서 Ctrl+V 붙여넣기도 됨. 남기기·고치기는 multipart(`keep_images`로 남길 그림 주소), 파일 검사·저장은 `projects_api`의 `save_file` 재사용, 폴더 `uploads/ideas/`. `Idea.images` 칸을 더해서 예전 개발 DB면 `seed.py`로 다시 만들어야 한다 (시험 69개)
+- 수준 테스트도 상단 메뉴를 쓴다 (사용자 요청, devlog 20단계). 메뉴 아래 줄에 진행·[나가기]. 결과 화면 주 버튼이 보이면 메뉴 [신청하기]는 숨김(`TopNav.tsx`의 `useHideNavPrimary`). 신청 화면만 로고 + [나가기]. 홈에서 로고를 누르면 맨 위로
 - UI 체크리스트(홈) 남은 수정 필요: 06-1 긴 이름·부서 시험 하나
 - 남은 작은 것: 완성작 목록의 [완성작 올리기]가 아직 주 버튼(메뉴와 두 개)
 - Git Bash에서 python heredoc 문자열에 `C:\Users` 같은 경로를 넣으면 `\U`가 이스케이프로 읽혀 실패한다 → 한글·경로가 든 문서 편집은 Edit 도구로
