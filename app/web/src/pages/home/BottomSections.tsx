@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mark, Section, SectionTitle } from '../../components/Section'
 import { PrimaryAction } from '../../components/TopNav'
-import { VIRTUAL_IDEAS, VIRTUAL_PART_WORKS } from '../../data/virtual'
+import { VIRTUAL_PART_WORKS } from '../../data/virtual'
+import { IdeaBadge } from '../../components/BoardParts'
 import { track } from '../../lib/track'
 import { DataNote } from '../../components/DataNote'
 import { FrameCanvas, frameUrls, type FrameCanvasHandle } from '../../components/FrameCanvas'
 import { prefersReducedMotion } from '../../lib/motion'
+import { SwanLogoMark } from '../../components/SwanLogo'
 import { dLabel, type HomeData, type HomeLoad } from './types'
 
 /* ---------- 7. 수준 테스트 안내 ---------- */
@@ -128,8 +130,10 @@ export function PartIntro() {
   )
 }
 
-/* ---------- 9. 아이디어 보드 미리보기 (가상, Phase 5에서 실제 데이터로) ---------- */
-export function IdeasPreview() {
+/* ---------- 9. 아이디어 보드 미리보기 ---------- */
+// 공감 많은 순 3개 (서버 /api/home의 ideas). 0개면 첫 아이디어를 부르는 안내, 3개보다 적으면 남은 자리에 남기러 가는 줄 (UI 체크리스트 06-2·06-3)
+export function IdeasPreview({ data, load }: { data: HomeData | null; load: HomeLoad }) {
+  const items = data?.ideas ?? []
   return (
     <Section name="home:09-ideas" className="page grid grid-cols-[500px_minmax(0,1fr)] gap-18 border-t border-line py-30">
       <div className="flex flex-col gap-6">
@@ -151,64 +155,106 @@ export function IdeasPreview() {
         >
           아이디어 보드 보기 →
         </Link>
-        <ol className="flex flex-col">
-          {VIRTUAL_IDEAS.map((idea) => (
-            <li
-              key={idea.title}
-              data-reveal
-              className="grid grid-cols-[96px_minmax(0,1fr)_auto] items-center gap-6 border-b border-line py-6 first:border-t"
+        {!data ? (
+          <div className="flex min-h-[200px] items-center border-t border-line">
+            <DataNote load={load} what="아이디어를" />
+          </div>
+        ) : items.length === 0 ? (
+          <div data-reveal className="flex flex-col items-start gap-3 border-y border-line py-14">
+            <p className="font-display text-[28px] font-extrabold">아직 남겨진 아이디어가 없어요</p>
+            <p className="text-[17px] text-muted">매주 손으로 반복하는 일이 있다면 첫 번째로 남겨 주세요.</p>
+            <Link
+              to="/ideas"
+              onClick={() => track('click', 'home:ideas:first')}
+              className="mt-2 text-[16px] font-semibold underline underline-offset-4"
             >
-              <div className="flex flex-col items-start">
-                <span className="font-display text-[34px] leading-none font-extrabold">{idea.votes}</span>
-                <span className="font-mono text-[12px] text-muted">공감</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[20px] font-bold">{idea.title}</span>
-                <span className="text-[16px] text-muted">{idea.desc}</span>
-              </div>
-              <StatusBadge status={idea.status} />
-            </li>
-          ))}
-        </ol>
+              첫 아이디어 남기기 →
+            </Link>
+          </div>
+        ) : (
+          <ol className="flex flex-col">
+            {items.map((idea) => (
+              <li key={idea.id} data-reveal className="border-b border-line first:border-t">
+                <Link
+                  to="/ideas"
+                  onClick={() => track('click', `home:ideas:${idea.id}`)}
+                  className="group grid grid-cols-[96px_minmax(0,1fr)_auto] items-center gap-6 py-6"
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-display text-[34px] leading-none font-extrabold">{idea.votes}</span>
+                    <span className={`font-mono text-[12px] ${idea.voted ? 'font-semibold text-ink' : 'text-muted'}`}>
+                      {idea.voted ? '✓ 나도 공감' : '공감'}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate text-[20px] font-bold group-hover:underline group-hover:underline-offset-4">{idea.title}</span>
+                    <span className="truncate text-[16px] text-muted">{idea.reply ? `↳ IPS 파트: ${idea.reply}` : idea.description}</span>
+                  </div>
+                  <IdeaBadge status={idea.status} label={idea.status_label} />
+                </Link>
+              </li>
+            ))}
+            {items.length < 3 && (
+              // 1~2개일 때 빈 자리를 남기러 가는 줄로 (목록이 끊겨 보이지 않게)
+              <li data-reveal className="border-b border-dashed border-dash">
+                <Link
+                  to="/ideas"
+                  onClick={() => track('click', 'home:ideas:more')}
+                  className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-6 py-6 text-muted hover:text-ink"
+                >
+                  <span className="font-display text-[34px] leading-none font-extrabold text-line">+</span>
+                  <span className="text-[17px] font-semibold">비슷한 불편이 있다면 아이디어를 더 남겨 주세요 →</span>
+                </Link>
+              </li>
+            )}
+          </ol>
+        )}
       </div>
     </Section>
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const tone = status === '만드는 중' ? 'bg-success-bg text-success' : status === '검토 중' ? 'bg-sky text-ink' : 'bg-disabled text-muted'
-  return <span className={`rounded-badge px-2.5 py-1 text-[13px] font-bold ${tone}`}>{status}</span>
-}
-
 /* ---------- 10. 마지막 신청 안내 ---------- */
 // 어린 백조가 날개를 펴고 날아오른다 (Higgsfield Kling O3로 만든 5초 영상 → 배경 제거 → 투명 프레임 61장, 원본 design/fly/)
-// 섹션이 보이면 한 번 날아오르고, 그 뒤에는 마지막 구간(공중에서 날갯짓)을 앞뒤로 오가며 계속 날갯짓한다
+// 섹션이 보이면 한 번만: 날아오름 → 꼭대기에서 머리 위에 `>_ SWAN` 로고 → 공중 날갯짓 두 번 → 같은 장면을 거꾸로 돌려 내려앉음
+// (계속 떠 있으면 날다가 실패하는 것처럼 보인다는 의견, 2026-10-19). 로고는 하늘에 남는다
 const FLY = frameUrls('cygnet-fly', 61)
 const FLY_FPS = 12
 const HOVER_FROM = 44 // 이 장면부터 끝까지가 공중에서 날갯짓하는 구간
+const FLY_LAST = FLY.length - 1
+const range = (from: number, to: number) =>
+  Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => from + (to > from ? i : -i))
+// 장면 순서: 날아오름 0→60 · 날갯짓 60→44→60 두 번 · 내려앉음 60→0
+const FLY_SEQ = [
+  ...range(0, FLY_LAST),
+  ...range(FLY_LAST - 1, HOVER_FROM),
+  ...range(HOVER_FROM + 1, FLY_LAST),
+  ...range(FLY_LAST - 1, HOVER_FROM),
+  ...range(HOVER_FROM + 1, FLY_LAST),
+  ...range(FLY_LAST - 1, 0),
+]
 
 function FlyingCygnet() {
   const box = useRef<HTMLDivElement>(null)
   const canvas = useRef<FrameCanvasHandle>(null)
+  const [logo, setLogo] = useState(false)
   useEffect(() => {
-    const last = FLY.length - 1
+    canvas.current?.draw(0)
     if (prefersReducedMotion()) {
-      canvas.current?.draw(last) // 움직임 줄이기: 날개를 편 마지막 장면으로 멈춰 둔다
+      setLogo(true) // 움직임 줄이기: 서 있는 장면 + 로고로 끝 상태를 바로 보여 준다
       return
     }
-    canvas.current?.draw(0)
     let timer = 0
-    let f = 0
-    let dir = 1
+    let step = 0
     const io = new IntersectionObserver(
       ([e]) => {
         window.clearInterval(timer)
-        if (!e.isIntersecting) return
+        if (!e.isIntersecting || step >= FLY_SEQ.length) return
         timer = window.setInterval(() => {
-          f += dir
-          if (f >= last) dir = -1 // 끝에 닿으면 날갯짓 구간을 거꾸로
-          else if (dir < 0 && f <= HOVER_FROM) dir = 1
-          canvas.current?.draw(f)
+          step += 1
+          if (step >= FLY_SEQ.length) return window.clearInterval(timer)
+          if (step === FLY_LAST) setLogo(true) // 꼭대기에 닿는 순간
+          canvas.current?.draw(FLY_SEQ[step])
         }, 1000 / FLY_FPS)
       },
       { threshold: 0.35 },
@@ -220,7 +266,17 @@ function FlyingCygnet() {
     }
   }, [])
   return (
-    <div ref={box} className="pointer-events-none -mb-24 self-end" aria-hidden>
+    <div ref={box} className="pointer-events-none relative -mb-24 self-end" aria-hidden>
+      {/* 꼭대기 장면의 머리 위 (캔버스 윗변 바로 위) */}
+      <div
+        className="absolute bottom-full left-1/2 mb-1 transition-all duration-500 ease-out"
+        style={{
+          transform: `translateX(-50%) translateY(${logo ? 0 : 16}px) scale(${logo ? 1 : 0.6})`,
+          opacity: logo ? 1 : 0,
+        }}
+      >
+        <SwanLogoMark onInk />
+      </div>
       <FrameCanvas ref={canvas} urls={FLY} size={440} />
     </div>
   )
@@ -230,7 +286,7 @@ export function FinalCta({ data, load }: { data: HomeData | null; load: HomeLoad
   const r = data?.recruit
   return (
     <Section name="home:10-final" className="bg-ink text-white">
-      <div className="page grid grid-cols-[minmax(0,1fr)_440px] items-end gap-12 pt-24 pb-24">
+      <div className="page grid grid-cols-[minmax(0,1fr)_440px] items-end gap-12 pt-32 pb-24">
         <div className="flex flex-col gap-10 pb-8">
           {/* 마무리 강조: 섹션 제목 중 이곳만 64px (SectionTitle 주석의 예외) */}
           <h2 data-reveal className="font-display text-[64px] leading-[1.25] font-extrabold tracking-[-0.03em]">

@@ -41,7 +41,7 @@ export function Home() {
       <Journey />
       <QuizTeaser />
       <PartIntro />
-      <IdeasPreview />
+      <IdeasPreview data={data} load={load} />
       <FinalCta data={data} load={load} />
     </>
   )

@@ -1,4 +1,4 @@
-# 다음 세션 시작 프롬프트 (2026-10-18 밤 갱신 · Phase 4 완료 뒤)
+# 다음 세션 시작 프롬프트 (2026-10-19 갱신 · Phase 5 완료 뒤)
 
 아래 "붙여넣을 프롬프트"를 새 세션 첫 메시지로 그대로 붙여 넣는다. 작업 폴더는 `C:\Users\sungj\OneDrive\바탕 화면\SWAN`.
 
@@ -6,22 +6,21 @@
 
 ## 붙여넣을 프롬프트
 
-SWAN 사내 교육 사이트 작업을 이어서 하자. 지금은 Phase 4(완성작 갤러리)까지 끝났고, 다음은 **Phase 5 아이디어 보드와 토이프로젝트**야. 먼저 아래 파일들을 읽고 지금 상태를 파악해 줘.
+SWAN 사내 교육 사이트 작업을 이어서 하자. 지금은 Phase 5(아이디어 보드·토이프로젝트)까지 끝났고, 다음은 **Phase 6 제작 과정 화면, 커리큘럼 관리, 관리자 추가**야. 이걸로 모든 기능이 완성돼. 먼저 아래 파일들을 읽고 지금 상태를 파악해 줘.
 
 1. `app/CLAUDE.md` — 사이트 규칙과 디자인 원칙
-2. `planning/v3-1013/handoff-next-session.md` — 이 파일. 한 일, 남은 일, 주의할 점(특히 '렌더 주의', 서버 관련 항목)
-3. `planning/v3-1013/claude-code-prompt.md`의 **Phase 5** — 아이디어 보드·토이프로젝트 흐름과 수용 기준
-4. `design/direction-a/구현-전달.md` — 방향 A 디자인 값 (배지 6종, 카드, 확인 창)
-5. `docs/devlog/README.md`(16단계까지)와 `docs/ui-review/home.md` 끝부분 — 지금까지 바뀐 것과 남은 체크리스트 항목 (⑩ 아이디어 0개·1개 상태는 Phase 5에서)
-6. 홈의 아이디어 미리보기(`app/web/src/pages/home/BottomSections.tsx`의 IdeasPreview)와 가상 데이터 `app/web/src/data/virtual.ts` — 실제 데이터로 바꿀 곳. 완성작(Phase 4)의 `projects_api.py`, `pages/Projects.tsx`, `components/ProjectParts.tsx`(하트·배지)는 비슷한 모양이라 참고
+2. `planning/v3-1013/handoff-next-session.md` — 이 파일. 한 일, 남은 일, 주의할 점(특히 '렌더 주의', 서버 관련 항목, 'Phase 5 완료')
+3. `planning/v3-1013/claude-code-prompt.md`의 **Phase 6** — 제작 과정 7개 구획, 커리큘럼·관리자 메뉴, 수용 기준
+4. `design/direction-a/구현-전달.md` — 방향 A 디자인 값
+5. `docs/devlog/README.md`(18단계까지)와 `planning/v3-1013/build-log.md` — 제작 과정 화면의 재료 (특히 '막혔던 순간과 해결'은 build-log에서)
+6. 지금 자리만 있는 곳: `/making`(`app/web/src/App.tsx`의 Placeholder), 관리자 '커리큘럼'·'관리자' 메뉴(`pages/Admin.tsx`의 MENU에서 phase 6). 커리큘럼 데이터는 `server/curriculum_seed.py`와 `/api/home`의 units·projects, 홈 화면은 `pages/home/`의 커리큘럼 섹션. 관리자 화면 모양은 Phase 5의 `pages/AdminBoards.tsx`, 파일 올리기는 Phase 4의 `projects_api.py`(save_file) 참고
 
-읽은 뒤 먼저 개발 서버 두 개(`.claude/launch.json`의 `swan-server`, `swan-web`)를 띄우고 홈, `/projects`, `/quiz`가 뜨는지 확인해. 8000·5174 포트를 지난 세션 서버가 잡고 있으면 명령줄을 확인해 SWAN 것만 끄고 다시 띄워 (5173은 다른 프로젝트). 그다음 Phase 5 계획을 짧게 보여 주고, 내가 정해야 할 것이 있으면 그것만 물어본 뒤 시작해 줘.
+읽은 뒤 먼저 개발 서버 두 개(`.claude/launch.json`의 `swan-server`, `swan-web`)를 띄우고 홈, `/ideas`, `/toys`가 뜨는지 확인해. 8000·5173·5174 포트를 지난 세션 서버가 잡고 있으면 명령줄을 확인해 SWAN 것만 끄고 다시 띄워 (다른 프로젝트가 5173을 쓸 때가 있음). 그다음 Phase 6 계획을 짧게 보여 주고, 내가 정해야 할 것이 있으면 그것만 물어본 뒤 시작해 줘.
 
-Phase 5에서 할 것 (claude-code-prompt.md 기준):
-- `/ideas`(사내 모든 직원): 공감순·최신순, 카드(제목·설명·올린 사람·공감 수·상태·파트 답변), [나도 필요해요](한 사람 한 번, 다시 누르면 취소), [아이디어 남기기](제목·설명·이름 표시 방식 고르기만), 내 아이디어 수정·삭제, 빈 상태. 상태: 접수됨 → 검토 중 → 만드는 중 → 완료 / 보류
-- `/toys`: 누구나 보기, 글쓰기·참여는 수강생·졸업생만. 모집 글(제목·만들 것·역할과 인원·예상 기간), [참여하고 싶어요](다시 누르면 취소), 글쓴이만 희망자 목록, [모집 마감]
-- 관리자: 아이디어(공감 수, 상태 변경, 한 줄 답변, 숨기기) · 토이프로젝트(목록, 숨기기). 관리자 화면에는 이름 표시 방식과 상관없이 이름이 보인다
-- 홈 아이디어 미리보기를 실제 데이터로(공감 많은 순 3개). 가상 데이터: 아이디어 8개(상태 고르게, 답변 3개), 모집 글 3개
+Phase 6에서 할 것 (claude-code-prompt.md 기준):
+- `/making`: 머리말 → 숫자로 보는 제작 → 타임라인(기획 → 화면 구조 → 디자인 → 구현 → 다듬기) → 실제로 쓴 프롬프트([펼쳐 보기]·[복사하기]·[전체 프롬프트 보기]) → 막혔던 순간과 해결 → SWAN 단원과의 연결 → [신청하기]. 내용은 `web/src/content/making.md` 같은 파일 하나에서 읽어 와 글만 바꿔도 화면이 바뀌게. 사내 정보는 넣지 않고, 확정되지 않은 숫자는 비워 두고 표시
+- 관리자 커리큘럼: 단원 수정, 실습 프로젝트 추가·수정·삭제·순서 바꾸기(미리보기 그림·영상 올리기 포함) → 홈에 바로 반영
+- 관리자 메뉴: 목록, [추가](사번이나 이름으로 찾기), [해제](자기 자신은 안 됨)
 - 서버 자동 시험을 `app/server/tests/`에 더하고 (임시 DB·임시 업로드 폴더, `tests/conftest.py`), 화면은 puppeteer 캡처(`tools/shot/`)로 확인
 - 끝나면 GitHub 비공개 저장소 `haeji1124/SWAN`에 커밋하고 올린다 (design/ 원본·node_modules·.venv·DB는 .gitignore로 빠짐)
 
@@ -31,8 +30,9 @@ Phase 5에서 할 것 (claude-code-prompt.md 기준):
 - 화면이 바뀌는 작업은 비포·애프터를 찍어 `docs/devlog/README.md`에 단계로 남긴다. AI가 틀렸다가 바로잡은 일은 `planning/v3-1013/build-log.md`에 세 줄로
 - 손으로 시험하느라 개발 DB를 바꿨으면 끝에 `app/server`에서 `.venv/Scripts/python.exe seed.py`로 가상 데이터를 되돌린다
 - 코드 스타일은 작은따옴표, 세미콜론 없음 (prettier를 기본 설정으로 돌리지 말 것)
+- 주 버튼(ink)은 한 화면에 하나. 메뉴의 [신청하기]가 늘 보이니 화면 안의 행동은 보조 버튼(sky)으로 (Phase 5에서 정함. 폼 제출과 창 안의 버튼은 예외)
 - 작업 중간에 띄우는 진행 글도 모두 한국어로
-- Phase가 끝나면 무엇을 만들었는지와 확인하는 방법을 요약하고, 이 파일의 '붙여넣을 프롬프트'를 다음 단계에 맞게 고쳐 둔다
+- Phase가 끝나면 무엇을 만들었는지와 확인하는 방법을 요약하고, 이 파일의 '붙여넣을 프롬프트'를 다음 단계(Phase 7 디자인 다듬기·3D)에 맞게 고쳐 둔다
 
 ---
 
@@ -110,17 +110,31 @@ Phase 5에서 할 것 (claude-code-prompt.md 기준):
 ## Phase 4 완료 (2026-10-18 밤)
 - 서버: `projects_api.py`(목록·필터·정렬, 상세, 좋아요 토글, 졸업생 올리기/고치기/지우기, 관리자 승인·반려·내리기, 홈 `showcase` 5개). 파일은 `python-multipart`로 받아 `data/uploads`(`SWAN_UPLOADS`로 바꿀 수 있음)에 저장하고 `/uploads`로 내보낸다. Vite 프록시에 `/uploads` 추가. 가상 완성작 대표 그림은 `app/server/seed_assets/project-1~6.webp` → seed가 `uploads/seed/p1~p8/`로 복사
 - 화면: `pages/Projects.tsx`(목록·상세·`ProjectView`), `pages/ProjectForm.tsx`(올리기·고치기), `pages/AdminProjects.tsx`(검수), `components/ProjectParts.tsx`(카드·하트·상태 배지), `components/Markdown.tsx`(Toast UI Editor 3.2.2, 필요할 때만 불러옴, 타입은 `src/toast-ui.d.ts`)
-- 마지막 신청 섹션의 날아오르는 어린 백조: `public/frames/cygnet-fly` 61장, `BottomSections.tsx`의 `FlyingCygnet`(한 번 날고 마지막 날갯짓 구간을 앞뒤로 반복). 원본·합성 `design/fly/`(compose.py). 쓴 크레딧 7.25
+- 마지막 신청 섹션의 날아오르는 어린 백조: `public/frames/cygnet-fly` 61장, `BottomSections.tsx`의 `FlyingCygnet`(2026-10-19부터 날아올라 로고를 띄운 뒤 내려앉음, 아래 참고). 원본·합성 `design/fly/`(compose.py). 쓴 크레딧 7.25
 - 모험길: 설명 문구를 제목 아래로. 축하 중 스크롤 붙잡기는 위에서 걸어 내려와 닿았을 때만(`lastP`). `tools/shot/region.cjs`는 훑어 내려간 뒤 4초 기다린다
 - 시험: `tests/test_phase4.py` 15개 (모두 53개). 화면 흐름 `tools/shot/phase4.cjs` — DB와 업로드 폴더를 바꾸므로 끝나면 `seed.py`
 - GitHub: 비공개 저장소 https://github.com/haeji1124/SWAN (main). `.gitignore`로 design/·public/·node_modules·.venv·data/ 제외, `core.autocrlf false`
 - 캡처할 때 화면 아래 오른쪽 개발용 사용자 상자가 버튼을 가릴 수 있다 → 누르기 전에 화면 가운데로 옮긴다
 
+## 날아오른 백조 · 로고 (2026-10-19)
+- 사용자 의견: 꼭대기 날갯짓만 반복해서 "날다가 실패하는 것 같다" → 날아오름 → 머리 위 `>_ SWAN` 로고 → 날갯짓 두 번 → 같은 프레임을 거꾸로 돌려 내려앉음(로고는 남음). 크레딧 없음. `BottomSections.tsx`의 `FLY_SEQ`, 로고는 공용 `components/SwanLogo.tsx`(히어로도 씀). 확인 `tools/shot/fly.cjs <url> <출력 앞부분> [초,초,…]` (devlog 17단계)
+- 내려앉기는 이륙을 거꾸로 돌린 것이라 날개 접는 모양이 이륙과 같다. 더 자연스러운 착지가 필요하면 착지 영상을 따로 만들어야 함(크레딧)
+
+## Phase 5 완료 (2026-10-19)
+- 서버: `ideas_api.py`(공감순·최신순, 남기기/고치기/지우기, 공감 토글, 관리자 상태·한 줄 답변·숨기기, 홈 `ideas` 3개), `toys_api.py`(글쓰기·참여는 수강생·졸업생만, 참여 토글, 희망자는 글쓴이만, 고치기·지우기·마감·다시 열기, 관리자 숨기기). Idea 상태에 `held`(보류)를 더함
+- 화면: `pages/Ideas.tsx`(/ideas, 남기기 창), `pages/Toys.tsx`(/toys, /toys/:id, /toys/new, /toys/:id/edit), `pages/AdminBoards.tsx`(관리자 아이디어·토이), `components/BoardParts.tsx`(상태 배지·[나도 필요해요]), `lib/boardApi.ts`. 홈 ⑩은 실제 데이터 + 0개·1개 상태. `data/virtual.ts`의 가상 아이디어는 지움
+- 가상 데이터: 아이디어 8개(공감한 사람을 정해 둬서 시험에서 누가 눌렀는지 앎), 모집 글 3개 (`seed.py`의 IDEAS·TOYS)
+- 시험: `tests/test_phase5.py` 15개 (모두 68개). 화면 흐름 `tools/shot/phase5.cjs <url> <out>` — 개발 DB를 바꾸므로 끝나면 `seed.py`
+- 사용자 결정: 토이 글쓴이는 고치기·지우기·다시 열기까지 된다. 게시판 행동 버튼은 보조 버튼(주 버튼은 메뉴 [신청하기] 하나)
+- UI 체크리스트(홈) 남은 수정 필요: 06-1 긴 이름·부서 시험 하나
+- 남은 작은 것: 완성작 목록의 [완성작 올리기]가 아직 주 버튼(메뉴와 두 개)
+- Git Bash에서 python heredoc 문자열에 `C:\Users` 같은 경로를 넣으면 `\U`가 이스케이프로 읽혀 실패한다 → 한글·경로가 든 문서 편집은 Edit 도구로
+
 ## 남은 일 (순서대로 제안)
 1. 모험길 다듬기(선택): 머리말과 길 사이 여백, 강사 깃대가 날개에서 조금 떨어져 보임, 이정표 번호가 작음
 2. ~~2번 영상~~: 2026-10-18 완료 (마지막 신청 섹션의 날아오르는 어린 백조)
 3. 그 밖의 생동감: 강사 섹션 갸웃, 숫자 섹션 오리 고개 내밀기, 접수 완료 오리 뛰기
-4. Phase 5(아이디어 보드·토이프로젝트) → 이후 Phase 순서대로
+4. ~~Phase 5~~: 2026-10-19 완료 → Phase 6(제작 과정·커리큘럼 관리·관리자 추가) → Phase 7 → Phase 8
 
 ## 주의할 점 (겪은 문제)
 - 지난 세션의 개발 서버가 8000·5174를 잡은 채 남아 있을 수 있다. 그러면 새 서버가 8001로 뜨는데, Vite는 8000으로 넘기므로 옛 서버가 응답한다. 포트를 쓰는 프로세스의 명령줄을 확인하고 SWAN 것만 끈 뒤 다시 띄운다 (5173은 다른 프로젝트가 쓰고 있을 수 있음)

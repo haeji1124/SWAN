@@ -8,10 +8,12 @@ import { track } from './lib/track'
 import { Admin } from './pages/Admin'
 import { Apply } from './pages/Apply'
 import { Home } from './pages/Home'
+import { Ideas } from './pages/Ideas'
 import { Placeholder } from './pages/Placeholder'
 import { ProjectForm } from './pages/ProjectForm'
 import { ProjectDetail, Projects } from './pages/Projects'
 import { Quiz } from './pages/Quiz'
+import { ToyDetail, ToyFormPage, Toys } from './pages/Toys'
 
 // 사이트에 처음 들어올 때 방문을 한 번 기록한다 (개발 모드의 StrictMode 이중 실행에도 한 번만)
 let visited = false
@@ -72,8 +74,11 @@ export default function App() {
               <Route path="/projects/:id/edit" element={<ProjectForm />} />
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/apply" element={<Apply />} />
-              <Route path="/toys" element={<Placeholder title="토이프로젝트" path="/toys" phase={5} />} />
-              <Route path="/ideas" element={<Placeholder title="아이디어 보드" path="/ideas" phase={5} />} />
+              <Route path="/toys" element={<Toys />} />
+              <Route path="/toys/new" element={<ToyFormPage />} />
+              <Route path="/toys/:id" element={<ToyDetail />} />
+              <Route path="/toys/:id/edit" element={<ToyFormPage />} />
+              <Route path="/ideas" element={<Ideas />} />
               <Route path="/making" element={<Placeholder title="이렇게 만들었어요" path="/making" phase={6} />} />
               <Route
                 path="/admin/*"

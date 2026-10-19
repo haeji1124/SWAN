@@ -8,6 +8,7 @@ import { Confetti, type ConfettiHandle } from '../../components/Confetti'
 import { getHeroMode, getMorphMode, webglAvailable } from '../../lib/heroMode'
 import { prefersReducedMotion } from '../../lib/motion'
 import { DataNote } from '../../components/DataNote'
+import { SwanLogoMark } from '../../components/SwanLogo'
 import { dLabel, type HomeData, type HomeLoad } from './types'
 
 const Hero3D = lazy(() => import('./Hero3D'))
@@ -200,17 +201,6 @@ function Stage({ children }: { children: React.ReactNode }) {
 
 /** 변신할 때 다 자란 백조의 머리 위(무대 아래에서 약 660px)에 반짝이며 뜨는 SWAN 로고 */
 function SwanLogo({ show }: { show: boolean }) {
-  const star = (x: number, y: number, s: number, delay: number, color: string) => (
-    <svg
-      key={`${x}-${y}`}
-      viewBox="0 0 20 20"
-      className="absolute motion-safe:animate-[twinkle_1.6s_ease-in-out_infinite]"
-      style={{ left: x, top: y, width: s, height: s, animationDelay: `${delay}s` }}
-      aria-hidden
-    >
-      <path d="M10 0 C11 7 13 9 20 10 C13 11 11 13 10 20 C9 13 7 11 0 10 C7 9 9 7 10 0Z" fill={color} />
-    </svg>
-  )
   return (
     <div
       className="pointer-events-none absolute bottom-[662px] left-[330px] transition-all duration-500 ease-out"
@@ -220,19 +210,7 @@ function SwanLogo({ show }: { show: boolean }) {
       }}
       aria-hidden={!show}
     >
-      <div className="relative motion-safe:animate-[float_3s_ease-in-out_infinite]">
-        <div className="flex items-baseline gap-1.5 rounded-full bg-ink px-5 py-2 text-white shadow-dialog">
-          <span className="font-mono text-[14px] text-sky">&gt;_</span>
-          <span className="font-display text-[26px] font-extrabold tracking-[0.06em]">SWAN</span>
-        </div>
-        {star(-26, -12, 18, 0, '#f28c38')}
-        {star(130, -18, 14, 0.5, '#f3a6bd')}
-        {star(62, -30, 11, 0.3, '#7cc9a5')}
-        {star(146, 28, 12, 1, '#9ccbf2')}
-        {star(-16, 38, 11, 0.8, '#7cc9a5')}
-        {star(170, 4, 9, 1.3, '#f28c38')}
-        {star(-40, 16, 8, 1.1, '#f3a6bd')}
-      </div>
+      <SwanLogoMark />
     </div>
   )
 }

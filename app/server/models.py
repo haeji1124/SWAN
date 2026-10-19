@@ -132,7 +132,7 @@ class Idea(Base):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(Text)
     name_display: Mapped[str] = mapped_column(String(10), default="full")  # full(이름과 부서) / dept(부서만)
-    # 상태: open(접수) / reviewing(검토 중) / building(만드는 중) / done(완료)
+    # 상태: open(접수됨) / reviewing(검토 중) / building(만드는 중) / done(완료) / held(보류)
     status: Mapped[str] = mapped_column(String(10), default="open")
     reply: Mapped[Optional[str]] = mapped_column(Text)  # 파트 답변
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)

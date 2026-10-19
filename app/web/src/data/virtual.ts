@@ -22,9 +22,3 @@ export const VIRTUAL_PART_WORKS = [
   { title: '사내 코드 리뷰 도우미', desc: '사내 규칙에 맞춰 코드를 먼저 살펴봐요', who: '개발 부서 전체' },
   { title: 'SWAN 교육 사이트', desc: '지금 보고 계신 이 사이트', who: '바이브코딩으로 제작' },
 ]
-
-export const VIRTUAL_IDEAS = [
-  { title: '설비 점검표를 엑셀에서 바로 PDF로', desc: '매주 수작업으로 옮겨 적고 있어요', votes: 42, status: '만드는 중' },
-  { title: '회의실 예약 현황을 한 화면에', desc: '층마다 따로 봐야 해서 불편해요', votes: 35, status: '검토 중' },
-  { title: '부서 공용 용어 사전', desc: '새로 온 사람이 약어를 몰라 헤매요', votes: 28, status: '접수' },
-]

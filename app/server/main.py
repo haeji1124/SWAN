@@ -13,8 +13,10 @@ from sqlalchemy.orm import Session
 import admin_api
 import apply_api
 import auth
+import ideas_api
 import projects_api
 import quiz_api
+import toys_api
 from db import Base, engine, get_db
 from models import Alumni, Cohort, CurriculumUnit, EventLog, PracticeProject, User
 
@@ -27,6 +29,10 @@ app.include_router(quiz_api.router)  # 수준 테스트 (Phase 3)
 app.include_router(quiz_api.admin)  # 관리자: 수준 테스트 문제 · 응시 결과 (Phase 3)
 app.include_router(projects_api.router)  # 완성작 갤러리 (Phase 4)
 app.include_router(projects_api.admin)  # 관리자: 완성작 검수 (Phase 4)
+app.include_router(ideas_api.router)  # 아이디어 보드 (Phase 5)
+app.include_router(ideas_api.admin)  # 관리자: 아이디어 (Phase 5)
+app.include_router(toys_api.router)  # 토이프로젝트 (Phase 5)
+app.include_router(toys_api.admin)  # 관리자: 토이프로젝트 (Phase 5)
 # 올린 파일(완성작 이미지·발표자료). 이름은 서버가 지은 추측하기 어려운 이름이다
 app.mount(projects_api.URL_PREFIX, StaticFiles(directory=projects_api.UPLOAD_DIR), name="uploads")
 
@@ -94,6 +100,7 @@ def home(user: Optional[User] = Depends(auth.current_user), db: Session = Depend
         },
         "alumni_names": [a.name for a in alumni[:40]],
         "showcase": projects_api.top_projects(db, user),  # 완성작 미리보기: 좋아요 많은 순 5개
+        "ideas": ideas_api.top_ideas(db, user),  # 아이디어 보드 미리보기: 공감 많은 순 3개
         "dept_names": depts,
         "units": [{"id": u.id, "stage": u.stage, "title": u.title, "content": u.content} for u in units],
         "projects": [

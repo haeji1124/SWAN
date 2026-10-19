@@ -68,6 +68,60 @@ DETAIL_SAMPLE = """## 이렇게 동작해요
 > 모두 가상 데이터로 만든 예시 설명입니다."""
 
 
+# 가상 아이디어 (모두 지어낸 것). (작성자 순번, 제목, 설명, 이름 표시 방식, 상태, 파트 답변, 며칠 전, 공감 수)
+# 작성자 순번은 run()의 users 목록: 0~4 직원, 5·6 5기 신청자, 7~9 졸업생. 공감은 사용자 12명 안에서
+IDEAS = [
+    (2, "설비 점검표를 엑셀에서 바로 PDF로", "매주 점검표를 엑셀에 적고 나서 결재용 양식에 다시 옮겨 적어요. 버튼 한 번으로 PDF가 나오면 좋겠어요.",
+     "full", "building", "점검표 양식 두 가지로 먼저 만들고 있어요. 11월 둘째 주에 시범으로 열어요", 9, 9),
+    (1, "주간 보고 양식 자동 채우기", "실적 숫자는 시스템에 다 있는데, 보고서 칸마다 손으로 옮기고 있어요.",
+     "dept", "done", "'보고서 도우미'로 열었어요. 사내 포털 업무 도구 메뉴에서 쓸 수 있어요", 30, 8),
+    (0, "회의실 예약 현황을 한 화면에", "층마다 예약 화면이 따로라서 빈 회의실을 찾으려면 여러 번 들어가 봐야 해요.",
+     "dept", "reviewing", None, 4, 7),
+    (3, "부서 공용 용어 사전", "새로 온 사람이 약어와 설비 별명을 몰라 매번 물어봐요. 부서마다 쓰는 말을 모아 두면 좋겠어요.",
+     "full", "open", None, 2, 6),
+    (5, "측정 데이터 단위 변환기", "장비마다 내보내는 단위가 달라서 비교하기 전에 엑셀에서 하나씩 바꾸고 있어요.",
+     "full", "reviewing", None, 6, 5),
+    (8, "출장비 정산 체크리스트", "정산할 때 빠뜨리는 영수증이 많아요. 출장 종류별로 챙길 것을 알려 주면 좋겠어요.",
+     "full", "building", None, 12, 4),
+    (4, "공용 장비 반납 알림", "빌려 간 측정 장비를 언제 돌려줘야 하는지 잊어버려서 다른 사람이 기다려요.",
+     "full", "held", "장비 대여 기록이 있는 시스템의 연동 권한을 먼저 확인하고 다시 볼게요", 20, 3),
+    (6, "교육 자료를 한곳에서 검색", "교육 자료가 게시판 여러 곳에 흩어져 있어서 지난 자료를 찾기 어려워요.",
+     "dept", "open", None, 1, 2),
+]
+
+# 가상 토이프로젝트 모집 글. (작성자 순번, 제목, 만들 것, 필요한 역할과 인원, 예상 기간, 모집 상태, 며칠 전, 참여 희망자 순번)
+TOYS = [
+    (7, "설비 로그 대시보드 같이 만들 분", "밤새 쌓인 설비 로그를 아침에 한 화면으로 보는 대시보드를 만들어 보려고 해요. 화면은 제가 맡고, 로그를 정리하는 부분을 함께 고민할 분을 찾아요.",
+     "화면 1명 · 데이터 정리 1명", "1개월", "open", 2, [5, 9]),
+    (5, "엑셀 보고서 자동화 같이 공부해요", "5기 수업에서 배운 걸로 각자 부서의 엑셀 보고서를 하나씩 자동화해 보는 모임이에요. 막히면 서로 코드를 봐 줘요.",
+     "함께할 사람 2~3명", "2주", "open", 1, [6]),
+    (9, "사내 용어 퀴즈 봇", "새로 온 사람이 부서 용어를 퀴즈로 익히는 작은 봇을 만들었어요. 문제 데이터를 넣는 기능을 함께 만들었고, 지금은 정리 중이에요.",
+     "백엔드 1명", "2개월", "closed", 25, [8]),
+]
+
+
+def seed_ideas_toys(db, users) -> None:
+    """가상 아이디어와 공감, 토이프로젝트 모집 글과 참여 희망 (모두 지어낸 것)"""
+    from models import Idea, IdeaVote, ToyJoin, ToyPost
+
+    now = datetime(2026, 10, 18, 17, 0)
+    for k, (who, title, desc, display, status, reply, days, votes) in enumerate(IDEAS):
+        i = Idea(author_id=users[who].id, title=title, description=desc, name_display=display,
+                 status=status, reply=reply, created_at=now - timedelta(days=days, hours=k))
+        db.add(i)
+        db.flush()
+        # 공감한 사람은 정해 둔다 (시험에서 누가 눌렀는지 알 수 있게): 아이디어마다 순번을 하나씩 밀어서
+        for j in range(votes):
+            db.add(IdeaVote(user_id=users[(k + 1 + j) % len(users)].id, idea_id=i.id))
+    for k, (who, title, what, roles, period, status, days, joiners) in enumerate(TOYS):
+        t = ToyPost(author_id=users[who].id, title=title, what=what, roles=roles, period=period,
+                    status=status, created_at=now - timedelta(days=days, hours=k))
+        db.add(t)
+        db.flush()
+        for j in joiners:
+            db.add(ToyJoin(user_id=users[j].id, toy_id=t.id))
+
+
 def seed_projects(db, users, rng) -> None:
     """가상 완성작과 좋아요. 대표 그림은 seed_assets/의 자리 그림을 uploads로 복사한다 (실제 졸업생 작품 아님)"""
     import os
@@ -186,6 +240,7 @@ def run() -> None:
                                created_at=t0 + timedelta(days=k % 3, hours=k, minutes=n * 20)))
 
     seed_projects(db, users, rng)
+    seed_ideas_toys(db, users)
 
     db.commit()
     print(f"사용자 {db.query(User).count()}명, 기수 {len(cohorts)}개, 졸업생 명단 {len(alumni)}명을 넣었어요 (모두 가상).")
