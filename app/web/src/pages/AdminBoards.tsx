@@ -99,6 +99,16 @@ export function IdeasAdmin() {
                     <span className="truncate font-semibold">{i.title}</span>
                   </span>
                   <span className="mt-0.5 block truncate text-[14px] text-muted">{i.description}</span>
+                  {i.images.length > 0 && (
+                    // 첨부 그림: 숨길지 판단할 수 있게 작게 보여 주고, 누르면 새 탭에서 크게
+                    <span className="mt-2 flex gap-1.5">
+                      {i.images.map((src, k) => (
+                        <a key={src} href={src} target="_blank" rel="noreferrer" aria-label={`첨부 그림 ${k + 1}`}>
+                          <img src={src} alt="" className="h-[40px] w-[56px] rounded-[6px] border border-line object-cover hover:border-ink" />
+                        </a>
+                      ))}
+                    </span>
+                  )}
                   {replying === i.id ? (
                     <form
                       className="mt-3 flex items-center gap-2"

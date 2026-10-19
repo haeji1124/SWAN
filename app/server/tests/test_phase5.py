@@ -7,6 +7,8 @@
 
 임시 DB(conftest.py)에서 돌린다. 실행: .venv/Scripts/python.exe -m pytest tests -q
 """
+import io
+import json
 import os
 import sys
 
@@ -57,14 +59,14 @@ def test_ideas_list_sorted_with_all_statuses():
 
 def test_new_idea_shows_at_once_with_chosen_name_display():
     c = as_user(EMPLOYEE2)
-    r = c.post("/api/ideas", json={"title": "  야간 근무표 공유  ", "description": "근무표를 사진으로 돌려 봐요", "name_display": "dept"})
+    r = c.post("/api/ideas", data={"title": "  야간 근무표 공유  ", "description": "근무표를 사진으로 돌려 봐요", "name_display": "dept"})
     assert r.status_code == 200
     new = r.json()
     assert new["title"] == "야간 근무표 공유" and new["status_label"] == "접수됨" and new["votes"] == 0
     assert new["author"] == "품질보증팀"  # 부서만
     assert as_user(EMPLOYEE).get("/api/ideas?sort=latest").json()["items"][0]["id"] == new["id"]  # 승인 없이 바로
     # 이름과 부서
-    full = c.post("/api/ideas", json={"title": "하나 더", "description": "설명", "name_display": "full"}).json()
+    full = c.post("/api/ideas", data={"title": "하나 더", "description": "설명", "name_display": "full"}).json()
     assert full["author"] == "오지유 · 품질보증팀"
     # 남이 보면 고칠 정보는 없다
     seen = idea(as_user(EMPLOYEE), new["id"])
@@ -73,11 +75,48 @@ def test_new_idea_shows_at_once_with_chosen_name_display():
 
 def test_idea_validation_and_login():
     c = as_user(EMPLOYEE)
-    assert c.post("/api/ideas", json={"title": " ", "description": "설명"}).status_code == 400
-    assert c.post("/api/ideas", json={"title": "제목", "description": "가" * 301}).status_code == 400
-    assert c.post("/api/ideas", json={"title": "가" * 61, "description": "설명"}).status_code == 400
-    assert c.post("/api/ideas", json={"title": "제목", "description": "설명", "name_display": "anon"}).status_code == 422
-    assert as_user(None).post("/api/ideas", json={"title": "제목", "description": "설명"}).status_code == 401
+    assert c.post("/api/ideas", data={"title": " ", "description": "설명"}).status_code == 400
+    assert c.post("/api/ideas", data={"title": "제목", "description": "가" * 301}).status_code == 400
+    assert c.post("/api/ideas", data={"title": "가" * 61, "description": "설명"}).status_code == 400
+    assert c.post("/api/ideas", data={"title": "제목", "description": "설명", "name_display": "anon"}).status_code == 400
+    assert as_user(None).post("/api/ideas", data={"title": "제목", "description": "설명"}).status_code == 401
+
+
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+
+
+def pngs(*names):
+    return [("images", (n, io.BytesIO(PNG), "image/png")) for n in names]
+
+
+def test_idea_images_attach_edit_and_delete():
+    c = as_user(EMPLOYEE2)
+    body = {"title": "라벨 출력 양식", "description": "그림처럼 칸이 밀려요", "name_display": "full"}
+    new = c.post("/api/ideas", data=body, files=pngs("a.png", "b.png")).json()
+    assert len(new["images"]) == 2 and all(u.startswith("/uploads/ideas/") for u in new["images"])
+    assert c.get(new["images"][0]).status_code == 200  # 올린 그림을 바로 볼 수 있다
+    assert idea(as_user(EMPLOYEE), new["id"])["images"] == new["images"]
+    # 3장까지
+    assert c.post("/api/ideas", data=body, files=pngs("1.png", "2.png", "3.png", "4.png")).status_code == 400
+    # 그림이 아닌 파일, 이름만 바꾼 파일은 막는다
+    assert c.post("/api/ideas", data=body, files=[("images", ("x.pdf", io.BytesIO(b"%PDF-1.4"), "application/pdf"))]).status_code == 400
+    assert c.post("/api/ideas", data=body, files=[("images", ("x.png", io.BytesIO(b"not an image"), "image/png"))]).status_code == 400
+    # 고치기: 하나 남기고 둘 더하면 3장, 뺀 그림은 지워진다
+    kept, dropped = new["images"]
+    edited = c.put(f"/api/ideas/{new['id']}", data={**body, "keep_images": json.dumps([kept])}, files=pngs("c.png", "d.png")).json()
+    assert len(edited["images"]) == 3 and edited["images"][0] == kept and dropped not in edited["images"]
+    assert c.get(dropped).status_code == 404
+    assert c.put(f"/api/ideas/{new['id']}", data={**body, "keep_images": json.dumps(edited["images"])}, files=pngs("e.png")).status_code == 400
+    # 그림 없이 고치면 keep_images가 빈 목록이라 모두 빠진다
+    assert c.put(f"/api/ideas/{new['id']}", data=body).json()["images"] == []
+    assert c.get(kept).status_code == 404
+    # 지우면 그림도 지운다
+    again = c.post("/api/ideas", data=body, files=pngs("f.png")).json()
+    c.delete(f"/api/ideas/{again['id']}")
+    assert c.get(again["images"][0]).status_code == 404
+    # 관리자 목록에도 그림
+    row = next(i for i in as_user(ADMIN).get("/api/admin/ideas").json()["items"] if i["id"] == new["id"])
+    assert row["images"] == []
 
 
 def test_name_display_on_board_but_admin_sees_name():
@@ -100,11 +139,11 @@ def test_vote_once_and_toggle():
 def test_only_author_edits_and_deletes():
     other = as_user(EMPLOYEE2)
     body = {"title": "회의실 빈자리 한눈에", "description": "층별로 따로 봐야 해요", "name_display": "full"}
-    assert other.put("/api/ideas/3", json=body).status_code == 403
+    assert other.put("/api/ideas/3", data=body).status_code == 403
     assert other.delete("/api/ideas/3").status_code == 403
     me = as_user(EMPLOYEE)
     assert idea(me, 3)["mine"] is True and idea(me, 3)["name_display"] == "dept"
-    edited = me.put("/api/ideas/3", json=body).json()
+    edited = me.put("/api/ideas/3", data=body).json()
     assert edited["title"] == "회의실 빈자리 한눈에" and edited["author"] == "한서준 · 공정기술 1팀" and edited["votes"] == 7
     assert me.delete("/api/ideas/3").json() == {"ok": True}
     assert idea(me, 3) is None and len(me.get("/api/ideas").json()["items"]) == 7

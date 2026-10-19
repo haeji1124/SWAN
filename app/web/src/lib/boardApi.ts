@@ -1,5 +1,5 @@
 // 아이디어 보드 · 토이프로젝트 서버 함수 (Phase 5)
-import { api } from './api'
+import { ApiError, api } from './api'
 
 // ---------- 아이디어 보드 ----------
 
@@ -17,6 +17,7 @@ export type Idea = {
   status: IdeaStatus
   status_label: string
   reply: string | null
+  images: string[] // 첨부 그림 주소
   mine: boolean
   name_display: NameDisplay | null // 내 아이디어일 때만
   created_at: string
@@ -27,10 +28,34 @@ export type IdeaForm = { title: string; description: string; name_display: NameD
 export const IDEA_TITLE_MAX = 60
 export const IDEA_DESC_MAX = 300
 export const IDEA_REPLY_MAX = 100
+export const IDEA_MAX_IMAGES = 3
 
 export const listIdeas = (sort: IdeaSort) => api<{ items: Idea[]; can_post: boolean }>(`/api/ideas?sort=${sort}`)
-export const createIdea = (f: IdeaForm) => api<Idea>('/api/ideas', { method: 'POST', body: JSON.stringify(f) })
-export const updateIdea = (id: number, f: IdeaForm) => api<Idea>(`/api/ideas/${id}`, { method: 'PUT', body: JSON.stringify(f) })
+
+/** 그림이 붙을 수 있어 FormData로 보낸다. Content-Type은 브라우저가 정해야 해서(경계 문자열) api() 대신 fetch */
+async function sendIdea(path: string, method: 'POST' | 'PUT', f: IdeaForm, images: File[], keep?: string[]): Promise<Idea> {
+  const body = new FormData()
+  body.append('title', f.title)
+  body.append('description', f.description)
+  body.append('name_display', f.name_display)
+  if (keep) body.append('keep_images', JSON.stringify(keep))
+  images.forEach((img) => body.append('images', img))
+  const res = await fetch(path, { method, body })
+  if (!res.ok) {
+    let message = '잠시 후 다시 시도해 주세요'
+    try {
+      const data = await res.json()
+      if (typeof data.detail === 'string') message = data.detail
+    } catch {
+      /* 본문이 없으면 기본 문구 */
+    }
+    throw new ApiError(res.status, message)
+  }
+  return res.json()
+}
+export const createIdea = (f: IdeaForm, images: File[]) => sendIdea('/api/ideas', 'POST', f, images)
+/** keep: 남겨 둘 기존 그림 주소. 빠진 그림은 서버에서 지운다 */
+export const updateIdea = (id: number, f: IdeaForm, images: File[], keep: string[]) => sendIdea(`/api/ideas/${id}`, 'PUT', f, images, keep)
 export const deleteIdea = (id: number) => api<{ ok: boolean }>(`/api/ideas/${id}`, { method: 'DELETE' })
 export const voteIdea = (id: number) => api<{ voted: boolean; votes: number }>(`/api/ideas/${id}/vote`, { method: 'POST' })
 
@@ -45,6 +70,7 @@ export type AdminIdea = {
   status: IdeaStatus
   status_label: string
   reply: string | null
+  images: string[]
   hidden: boolean
   created_at: string
 }

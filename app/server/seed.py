@@ -131,7 +131,7 @@ def seed_projects(db, users, rng) -> None:
     from models import Project, ProjectLike
 
     # 개발 DB를 새로 만들 때 예전에 올린 파일도 지운다
-    for sub in ("projects", "seed"):
+    for sub in ("projects", "seed", "ideas"):  # ideas: 아이디어 첨부 그림
         shutil.rmtree(os.path.join(projects_api.UPLOAD_DIR, sub), ignore_errors=True)
     assets = os.path.join(os.path.dirname(__file__), "seed_assets")
     now = datetime(2026, 10, 16, 18, 0)

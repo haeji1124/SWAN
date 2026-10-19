@@ -58,13 +58,36 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await typeIn('form[role=dialog] input', TITLE);
   await typeIn('form[role=dialog] textarea', '근무표를 사진으로 단체방에 돌려 봐서, 바뀐 내용을 놓칠 때가 있어요.');
   await clickText('form[role=dialog] label', '부서만');
+  // 그림 첨부: 파일 고르기로 한 장 + 화면 캡처를 붙여 넣은 것처럼 paste 이벤트로 한 장
+  const fileInput = await page.$('form[role=dialog] input[type=file]');
+  await fileInput.uploadFile(require('path').resolve(__dirname, '../../app/server/seed_assets/project-3.webp'));
+  await wait(400);
+  await page.evaluate(async () => {
+    const c = document.createElement('canvas');
+    c.width = 480;
+    c.height = 300;
+    const g = c.getContext('2d');
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 480, 300);
+    g.fillStyle = '#1f2a44';
+    g.font = '28px sans-serif';
+    g.fillText('붙여 넣은 화면 캡처 (시험용)', 40, 150);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], 'image.png', { type: 'image/png' }));
+    document.querySelector('form[role=dialog] textarea').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+  });
+  await wait(500);
   await shot('04-dialog-filled');
   await clickText('form[role=dialog] button[type=submit]', '남기기');
   await wait(800);
   await shot('05-after-post');
   const latest = await api('/api/ideas?sort=latest');
   const mine = latest.items[0];
-  log.push(['남긴 뒤 맨 위', `${mine.title} / 올린 사람 표시: ${mine.author}`]);
+  log.push(['남긴 뒤 맨 위', `${mine.title} / 올린 사람 표시: ${mine.author} / 그림 ${mine.images.length}장`]);
+  await page.click('button[aria-label="첨부 그림 2 크게 보기"]');
+  await shot('05b-image-zoom');
+  await page.keyboard.press('Escape');
 
   // 2) 직원 3: 공감
   await as(3);

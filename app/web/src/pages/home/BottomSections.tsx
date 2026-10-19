@@ -219,19 +219,18 @@ export function IdeasPreview({ data, load }: { data: HomeData | null; load: Home
 // 섹션이 보이면 한 번만: 날아오름 → 꼭대기에서 머리 위에 `>_ SWAN` 로고 → 공중 날갯짓 두 번 → 같은 장면을 거꾸로 돌려 내려앉음
 // (계속 떠 있으면 날다가 실패하는 것처럼 보인다는 의견, 2026-10-19). 로고는 하늘에 남는다
 const FLY = frameUrls('cygnet-fly', 61)
-const FLY_FPS = 12
+const FLY_FPS = 16
 const HOVER_FROM = 44 // 이 장면부터 끝까지가 공중에서 날갯짓하는 구간
 const FLY_LAST = FLY.length - 1
-const range = (from: number, to: number) =>
-  Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => from + (to > from ? i : -i))
-// 장면 순서: 날아오름 0→60 · 날갯짓 60→44→60 두 번 · 내려앉음 60→0
+const range = (from: number, to: number, step = 1) =>
+  Array.from({ length: Math.floor(Math.abs(to - from) / step) + 1 }, (_, i) => from + (to > from ? i : -i) * step)
+// 장면 순서: 날아오름 0→60 · 날갯짓 60→44→60 한 번 · 내려앉음 60→0(한 장씩 건너뛰어 빠르게). 모두 약 8초
+// (처음엔 초당 12장·날갯짓 두 번·한 장씩 내려와 약 15초였는데 너무 길다는 의견, 2026-10-19)
 const FLY_SEQ = [
   ...range(0, FLY_LAST),
   ...range(FLY_LAST - 1, HOVER_FROM),
   ...range(HOVER_FROM + 1, FLY_LAST),
-  ...range(FLY_LAST - 1, HOVER_FROM),
-  ...range(HOVER_FROM + 1, FLY_LAST),
-  ...range(FLY_LAST - 1, 0),
+  ...range(FLY_LAST - 2, 0, 2),
 ]
 
 function FlyingCygnet() {

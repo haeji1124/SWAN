@@ -1,6 +1,6 @@
 // 아이디어 보드 /ideas (Phase 5): 사내 직원 누구나 작은 불편을 가볍게 남기고 공감한다
 // 공감순·최신순 → 카드(제목·설명·올린 사람·공감 수·상태·파트 답변) → [나도 필요해요]
-// [아이디어 남기기]는 창 하나: 제목 · 설명(두세 줄) · 이름 표시 방식. 승인 없이 바로 목록에 보인다
+// [아이디어 남기기]는 창 하나: 제목 · 설명(두세 줄) · 그림(선택, 3장) · 이름 표시 방식. 승인 없이 바로 목록에 보인다
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { IdeaBadge, VoteButton } from '../components/BoardParts'
@@ -9,6 +9,7 @@ import { Mark } from '../components/Section'
 import { ApiError } from '../lib/api'
 import {
   IDEA_DESC_MAX,
+  IDEA_MAX_IMAGES,
   IDEA_TITLE_MAX,
   createIdea,
   deleteIdea,
@@ -43,6 +44,13 @@ export function Ideas() {
   const [error, setError] = useState(false)
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [fresh, setFresh] = useState<number | null>(null) // 방금 남긴 아이디어를 잠깐 강조
+  const [zoom, setZoom] = useState<string | null>(null) // 크게 보는 첨부 그림
+  useEffect(() => {
+    if (!zoom) return
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setZoom(null)
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }, [zoom])
 
   const load = useCallback(() => {
     setError(false)
@@ -159,12 +167,27 @@ export function Ideas() {
                   fresh={fresh === idea.id}
                   onEdit={() => setDialog({ mode: 'edit', idea })}
                   onDelete={() => remove(idea)}
+                  onZoom={setZoom}
                 />
               ))}
             </ol>
           )}
         </div>
       </div>
+
+      {zoom && (
+        <div
+          role="dialog"
+          aria-label="첨부 그림 크게 보기"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-12"
+          onClick={() => setZoom(null)}
+        >
+          <img src={zoom} alt="" className="max-h-full max-w-full rounded-card shadow-dialog" />
+          <button type="button" className="absolute top-6 right-8 text-[16px] font-semibold text-white" onClick={() => setZoom(null)}>
+            닫기 ✕
+          </button>
+        </div>
+      )}
 
       {dialog && (
         <IdeaDialog
@@ -177,7 +200,19 @@ export function Ideas() {
   )
 }
 
-function IdeaRow({ idea, fresh, onEdit, onDelete }: { idea: Idea; fresh: boolean; onEdit: () => void; onDelete: () => void }) {
+function IdeaRow({
+  idea,
+  fresh,
+  onEdit,
+  onDelete,
+  onZoom,
+}: {
+  idea: Idea
+  fresh: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onZoom: (src: string) => void
+}) {
   return (
     <li
       className={`grid grid-cols-[112px_minmax(0,1fr)] gap-7 border-b border-line py-7 transition-colors duration-700 ${fresh ? 'bg-sky/40' : ''}`}
@@ -202,6 +237,21 @@ function IdeaRow({ idea, fresh, onEdit, onDelete }: { idea: Idea; fresh: boolean
           )}
         </div>
         <p className="text-[16px] leading-relaxed whitespace-pre-line text-ink/85">{idea.description}</p>
+        {idea.images.length > 0 && (
+          <div className="flex gap-2.5 py-1">
+            {idea.images.map((src, k) => (
+              <button
+                key={src}
+                type="button"
+                onClick={() => onZoom(src)}
+                aria-label={`첨부 그림 ${k + 1} 크게 보기`}
+                className="h-[84px] w-[120px] overflow-hidden rounded-[8px] border border-line bg-surface hover:border-ink"
+              >
+                <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
         <p className="font-mono text-[13px] text-muted">
           // {idea.author} · {dayLabel(idea.created_at)}
         </p>
@@ -218,6 +268,32 @@ function IdeaRow({ idea, fresh, onEdit, onDelete }: { idea: Idea; fresh: boolean
 
 /* ---------- 남기기 · 고치기 창 ---------- */
 
+function DialogThumb({ src, onRemove }: { src: string; onRemove: () => void }) {
+  return (
+    <div className="relative h-[72px] w-[104px] overflow-hidden rounded-[8px] border border-line bg-paper">
+      <img src={src} alt="" className="h-full w-full object-cover" />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="이 그림 빼기"
+        className="absolute top-1 right-1 rounded-badge bg-ink/85 px-1.5 py-0.5 text-[11px] font-bold text-white"
+      >
+        빼기
+      </button>
+    </div>
+  )
+}
+
+function FileThumb({ file, onRemove }: { file: File; onRemove: () => void }) {
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    const u = URL.createObjectURL(file)
+    setUrl(u)
+    return () => URL.revokeObjectURL(u)
+  }, [file])
+  return url ? <DialogThumb src={url} onRemove={onRemove} /> : null
+}
+
 const inputCls =
   'w-full rounded-btn border bg-surface px-4 py-3 text-[16px] outline-none focus:border-ink focus:shadow-[0_0_0_3px_var(--color-sky)]'
 
@@ -229,9 +305,24 @@ function IdeaDialog({ initial, onClose, onSaved }: { initial: Idea | null; onClo
     description: initial?.description ?? '',
     name_display: initial?.name_display ?? 'full',
   })
-  const [errors, setErrors] = useState<{ title?: string; description?: string }>({})
+  const [errors, setErrors] = useState<{ title?: string; description?: string; images?: string }>({})
+  const [keep, setKeep] = useState<string[]>(initial?.images ?? []) // 고칠 때 남겨 둘 기존 그림
+  const [added, setAdded] = useState<File[]>([])
   const [busy, setBusy] = useState(false)
   const first = useRef<HTMLInputElement>(null)
+  const pick = useRef<HTMLInputElement>(null)
+  const count = keep.length + added.length
+
+  // 파일 고르기와 붙여넣기(화면 캡처 후 Ctrl+V)가 함께 쓴다. 종류·크기는 서버도 다시 확인한다
+  const addFiles = (files: File[]) => {
+    const images = files.filter((x) => x.type.startsWith('image/'))
+    if (!images.length) return setErrors({ ...errors, images: 'png, jpg, webp, gif 그림만 붙일 수 있어요' })
+    if (images.some((x) => x.size > 5 * 1024 * 1024)) return setErrors({ ...errors, images: '그림 한 장은 5MB까지예요' })
+    const room = IDEA_MAX_IMAGES - count
+    setErrors({ ...errors, images: images.length > room ? `${IDEA_MAX_IMAGES}장까지라 ${room}장만 붙였어요` : undefined })
+    // 붙여넣은 그림은 이름이 image.png 하나라 서버가 확장자로 알아보게 이름을 붙인다
+    setAdded([...added, ...images.slice(0, room).map((x, k) => (/\.(png|jpe?g|webp|gif)$/i.test(x.name) ? x : new File([x], `paste-${k}.png`, { type: x.type })))])
+  }
 
   useEffect(() => {
     first.current?.focus()
@@ -249,7 +340,7 @@ function IdeaDialog({ initial, onClose, onSaved }: { initial: Idea | null; onClo
     if (Object.keys(errs).length) return
     setBusy(true)
     try {
-      onSaved(initial ? await updateIdea(initial.id, f) : await createIdea(f))
+      onSaved(initial ? await updateIdea(initial.id, f, added, keep) : await createIdea(f, added))
     } catch (err) {
       toast(errText(err))
       setBusy(false)
@@ -270,7 +361,13 @@ function IdeaDialog({ initial, onClose, onSaved }: { initial: Idea | null; onClo
         aria-labelledby="idea-dialog-title"
         onSubmit={submit}
         onClick={(e) => e.stopPropagation()}
-        className="flex w-[560px] flex-col gap-6 rounded-dialog bg-surface p-8 shadow-dialog"
+        onPaste={(e) => {
+          const files = Array.from(e.clipboardData.files)
+          if (!files.length) return // 글자 붙여넣기는 그대로
+          e.preventDefault()
+          if (count < IDEA_MAX_IMAGES) addFiles(files)
+        }}
+        className="flex max-h-[calc(100vh-48px)] w-[560px] flex-col gap-6 overflow-y-auto rounded-dialog bg-surface p-8 shadow-dialog"
       >
         <div className="flex flex-col gap-1.5">
           <h2 id="idea-dialog-title" className="text-[24px] font-bold">
@@ -314,6 +411,52 @@ function IdeaDialog({ initial, onClose, onSaved }: { initial: Idea | null; onClo
           />
           {errors.description && <span className="text-[13px] text-error">{errors.description}</span>}
         </label>
+
+        <div className="flex flex-col gap-2">
+          <span className="flex items-baseline justify-between text-[15px] font-bold">
+            <span>
+              그림 <span className="text-[13px] font-normal text-muted">선택</span>
+            </span>
+            <span className="font-mono text-[12px] font-normal text-muted">
+              {count} / {IDEA_MAX_IMAGES}
+            </span>
+          </span>
+          <div className="flex flex-wrap gap-2.5">
+            {keep.map((src) => (
+              <DialogThumb key={src} src={src} onRemove={() => setKeep(keep.filter((x) => x !== src))} />
+            ))}
+            {added.map((file, k) => (
+              <FileThumb key={`${file.name}-${k}`} file={file} onRemove={() => setAdded(added.filter((_, i) => i !== k))} />
+            ))}
+            {count < IDEA_MAX_IMAGES && (
+              <button
+                type="button"
+                onClick={() => pick.current?.click()}
+                className="flex h-[72px] w-[104px] flex-col items-center justify-center gap-0.5 rounded-[8px] border border-dashed border-disabled-ink text-[13px] font-semibold text-muted hover:border-ink hover:text-ink"
+              >
+                <span className="text-[20px] leading-none">+</span>
+                그림 붙이기
+              </button>
+            )}
+            <input
+              ref={pick}
+              type="file"
+              accept=".png,.jpg,.jpeg,.webp,.gif"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? [])
+                if (files.length) addFiles(files)
+                e.target.value = ''
+              }}
+            />
+          </div>
+          {errors.images ? (
+            <span className="text-[13px] text-error">{errors.images}</span>
+          ) : (
+            <span className="text-[13px] text-muted">불편한 화면을 캡처해 Ctrl+V로 붙여 넣어도 돼요. 3장까지, 한 장 5MB까지</span>
+          )}
+        </div>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-2 text-[15px] font-bold">올린 사람 표시</legend>

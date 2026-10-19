@@ -119,13 +119,15 @@ Phase 6에서 할 것 (claude-code-prompt.md 기준):
 ## 날아오른 백조 · 로고 (2026-10-19)
 - 사용자 의견: 꼭대기 날갯짓만 반복해서 "날다가 실패하는 것 같다" → 날아오름 → 머리 위 `>_ SWAN` 로고 → 날갯짓 두 번 → 같은 프레임을 거꾸로 돌려 내려앉음(로고는 남음). 크레딧 없음. `BottomSections.tsx`의 `FLY_SEQ`, 로고는 공용 `components/SwanLogo.tsx`(히어로도 씀). 확인 `tools/shot/fly.cjs <url> <출력 앞부분> [초,초,…]` (devlog 17단계)
 - 내려앉기는 이륙을 거꾸로 돌린 것이라 날개 접는 모양이 이륙과 같다. 더 자연스러운 착지가 필요하면 착지 영상을 따로 만들어야 함(크레딧)
+- 같은 날 "너무 길다"는 의견으로 약 15초 → 8초 (초당 16장, 날갯짓 한 번, 내려앉기는 한 장씩 건너뜀. devlog 19단계)
 
 ## Phase 5 완료 (2026-10-19)
 - 서버: `ideas_api.py`(공감순·최신순, 남기기/고치기/지우기, 공감 토글, 관리자 상태·한 줄 답변·숨기기, 홈 `ideas` 3개), `toys_api.py`(글쓰기·참여는 수강생·졸업생만, 참여 토글, 희망자는 글쓴이만, 고치기·지우기·마감·다시 열기, 관리자 숨기기). Idea 상태에 `held`(보류)를 더함
 - 화면: `pages/Ideas.tsx`(/ideas, 남기기 창), `pages/Toys.tsx`(/toys, /toys/:id, /toys/new, /toys/:id/edit), `pages/AdminBoards.tsx`(관리자 아이디어·토이), `components/BoardParts.tsx`(상태 배지·[나도 필요해요]), `lib/boardApi.ts`. 홈 ⑩은 실제 데이터 + 0개·1개 상태. `data/virtual.ts`의 가상 아이디어는 지움
 - 가상 데이터: 아이디어 8개(공감한 사람을 정해 둬서 시험에서 누가 눌렀는지 앎), 모집 글 3개 (`seed.py`의 IDEAS·TOYS)
-- 시험: `tests/test_phase5.py` 15개 (모두 68개). 화면 흐름 `tools/shot/phase5.cjs <url> <out>` — 개발 DB를 바꾸므로 끝나면 `seed.py`
+- 시험: `tests/test_phase5.py` 15개 (모두 69개, 그림 첨부 포함). 화면 흐름 `tools/shot/phase5.cjs <url> <out>` — 개발 DB를 바꾸므로 끝나면 `seed.py`
 - 사용자 결정: 토이 글쓴이는 고치기·지우기·다시 열기까지 된다. 게시판 행동 버튼은 보조 버튼(주 버튼은 메뉴 [신청하기] 하나)
+- 아이디어 그림 첨부 (사용자 요청, devlog 19단계): 3장·5MB·그림만, 창에서 Ctrl+V 붙여넣기도 됨. 남기기·고치기는 multipart(`keep_images`로 남길 그림 주소), 파일 검사·저장은 `projects_api`의 `save_file` 재사용, 폴더 `uploads/ideas/`. `Idea.images` 칸을 더해서 예전 개발 DB면 `seed.py`로 다시 만들어야 한다 (시험 69개)
 - UI 체크리스트(홈) 남은 수정 필요: 06-1 긴 이름·부서 시험 하나
 - 남은 작은 것: 완성작 목록의 [완성작 올리기]가 아직 주 버튼(메뉴와 두 개)
 - Git Bash에서 python heredoc 문자열에 `C:\Users` 같은 경로를 넣으면 `\U`가 이스케이프로 읽혀 실패한다 → 한글·경로가 든 문서 편집은 Edit 도구로

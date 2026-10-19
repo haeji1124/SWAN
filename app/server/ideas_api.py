@@ -6,10 +6,13 @@
 - 공감은 한 사람이 한 번, 다시 누르면 취소
 - 상태: 접수됨 → 검토 중 → 만드는 중 → 완료 / 보류. 상태와 파트 답변(한 줄)은 관리자가 정한다
 - 내가 올린 아이디어는 고치고 지울 수 있다
+- 줄글로 설명하기 어려운 불편은 그림을 3장까지 붙일 수 있다 (2026-10-19 사용자 요청). 파일 검사·저장은 완성작과 같다
 """
+import json
+import uuid
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -17,6 +20,7 @@ from sqlalchemy.orm import Session
 import auth
 from db import get_db
 from models import Idea, IdeaVote, User
+from projects_api import IMAGE_SIG, MAX_IMAGE, file_url, remove_file, save_file
 
 router = APIRouter()
 admin = APIRouter(prefix="/api/admin/ideas", dependencies=[Depends(auth.require_admin)])
@@ -24,6 +28,7 @@ admin = APIRouter(prefix="/api/admin/ideas", dependencies=[Depends(auth.require_
 TITLE_MAX = 60
 DESC_MAX = 300  # 두세 줄
 REPLY_MAX = 100  # 한 줄
+MAX_IMAGES = 3  # 첨부 그림
 STATUS_LABEL = {"open": "접수됨", "reviewing": "검토 중", "building": "만드는 중", "done": "완료", "held": "보류"}
 
 
@@ -52,6 +57,7 @@ def card(i: Idea, u: User, votes: int, voted: bool, user: Optional[User]) -> dic
         "id": i.id, "title": i.title, "description": i.description,
         "author": author_label(i, u), "votes": votes, "voted": voted,
         "status": i.status, "status_label": STATUS_LABEL.get(i.status, i.status), "reply": i.reply,
+        "images": [file_url(p) for p in i.images or []],
         "mine": mine, "name_display": i.name_display if mine else None,  # 고친다고 열 때만 필요하다
         "created_at": i.created_at.isoformat(timespec="minutes"),
     }
@@ -103,19 +109,31 @@ def toggle_vote(iid: int, user: User = Depends(auth.require_user), db: Session =
 
 # ---------- 남기기 · 고치기 · 지우기 ----------
 
-class IdeaIn(BaseModel):
-    title: str = Field(max_length=200)
-    description: str = Field(max_length=2000)
-    name_display: Literal["full", "dept"] = "full"
-
-
-def clean(body: IdeaIn) -> dict:
-    title, desc = body.title.strip(), body.description.strip()
+# 그림이 붙을 수 있어 남기기·고치기는 multipart(Form + File)로 받는다
+def clean(title: str, description: str, name_display: str) -> dict:
+    title, desc = title.strip(), description.strip()
     if not title or len(title) > TITLE_MAX:
         raise HTTPException(status_code=400, detail=f"제목을 {TITLE_MAX}자 안으로 적어 주세요")
     if not desc or len(desc) > DESC_MAX:
         raise HTTPException(status_code=400, detail=f"설명을 {DESC_MAX}자 안으로 적어 주세요")
-    return {"title": title, "description": desc, "name_display": body.name_display}
+    if name_display not in ("full", "dept"):
+        raise HTTPException(status_code=400, detail="이름 표시 방식을 골라 주세요")
+    return {"title": title, "description": desc, "name_display": name_display}
+
+
+async def save_images(files: List[UploadFile], room: int, folder: str) -> List[str]:
+    files = [f for f in files if f.filename]
+    if len(files) > room:
+        raise HTTPException(status_code=400, detail=f"그림은 {MAX_IMAGES}장까지 붙일 수 있어요")
+    saved: List[str] = []
+    try:
+        for f in files:
+            saved.append(await save_file(f, IMAGE_SIG, MAX_IMAGE, "그림", folder))
+    except HTTPException:
+        for rel in saved:  # 하나라도 잘못되면 이번에 저장한 것을 지운다
+            remove_file(rel)
+        raise
+    return saved
 
 
 def one_card(db: Session, i: Idea, user: User) -> dict:
@@ -123,8 +141,14 @@ def one_card(db: Session, i: Idea, user: User) -> dict:
 
 
 @router.post("/api/ideas")
-def create_idea(body: IdeaIn, user: User = Depends(auth.require_user), db: Session = Depends(get_db)):
-    i = Idea(author_id=user.id, status="open", **clean(body))  # 승인 없이 바로 공개
+async def create_idea(
+    title: str = Form(...), description: str = Form(...), name_display: str = Form("full"),
+    images: List[UploadFile] = File(default=[]),
+    user: User = Depends(auth.require_user), db: Session = Depends(get_db),
+):
+    fields = clean(title, description, name_display)
+    saved = await save_images(images, MAX_IMAGES, f"ideas/{uuid.uuid4().hex[:12]}")
+    i = Idea(author_id=user.id, status="open", images=saved, **fields)  # 승인 없이 바로 공개
     db.add(i)
     db.commit()
     return one_card(db, i, user)
@@ -138,9 +162,27 @@ def own_idea(db: Session, iid: int, user: User) -> Idea:
 
 
 @router.put("/api/ideas/{iid}")
-def edit_idea(iid: int, body: IdeaIn, user: User = Depends(auth.require_user), db: Session = Depends(get_db)):
+async def edit_idea(
+    iid: int,
+    title: str = Form(...), description: str = Form(...), name_display: str = Form("full"),
+    keep_images: str = Form("[]"),  # 남겨 둘 기존 그림 주소들 (JSON 목록)
+    images: List[UploadFile] = File(default=[]),
+    user: User = Depends(auth.require_user), db: Session = Depends(get_db),
+):
     i = own_idea(db, iid, user)
-    for k, v in clean(body).items():
+    fields = clean(title, description, name_display)
+    try:
+        keep_urls = set(json.loads(keep_images))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="그림 목록을 읽지 못했어요")
+    keep = [p for p in i.images or [] if file_url(p) in keep_urls]
+    folder = next((p.rsplit("/", 1)[0] for p in i.images or []), f"ideas/{uuid.uuid4().hex[:12]}")
+    added = await save_images(images, MAX_IMAGES - len(keep), folder)
+    for p in i.images or []:  # 뺀 그림만 지운다
+        if p not in keep:
+            remove_file(p)
+    i.images = keep + added
+    for k, v in fields.items():
         setattr(i, k, v)
     db.commit()
     return one_card(db, i, user)
@@ -149,6 +191,8 @@ def edit_idea(iid: int, body: IdeaIn, user: User = Depends(auth.require_user), d
 @router.delete("/api/ideas/{iid}")
 def delete_idea(iid: int, user: User = Depends(auth.require_user), db: Session = Depends(get_db)):
     i = own_idea(db, iid, user)
+    for p in i.images or []:
+        remove_file(p)
     for v in db.scalars(select(IdeaVote).where(IdeaVote.idea_id == i.id)).all():
         db.delete(v)
     db.delete(i)
@@ -168,7 +212,8 @@ def admin_list(db: Session = Depends(get_db)):
             "id": i.id, "title": i.title, "description": i.description,
             "author_name": u.name, "author_dept": u.dept, "name_display": i.name_display,
             "votes": counts.get(i.id, 0), "status": i.status, "status_label": STATUS_LABEL.get(i.status, i.status),
-            "reply": i.reply, "hidden": i.hidden, "created_at": i.created_at.isoformat(timespec="minutes"),
+            "reply": i.reply, "images": [file_url(p) for p in i.images or []],
+            "hidden": i.hidden, "created_at": i.created_at.isoformat(timespec="minutes"),
         }
         for i, u in rows
     ]

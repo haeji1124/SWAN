@@ -135,6 +135,7 @@ class Idea(Base):
     # 상태: open(접수됨) / reviewing(검토 중) / building(만드는 중) / done(완료) / held(보류)
     status: Mapped[str] = mapped_column(String(10), default="open")
     reply: Mapped[Optional[str]] = mapped_column(Text)  # 파트 답변
+    images: Mapped[list] = mapped_column(JSON, default=list)  # 첨부 그림 (uploads 안의 상대 경로, 3장까지)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
