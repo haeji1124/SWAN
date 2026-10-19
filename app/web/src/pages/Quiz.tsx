@@ -9,7 +9,7 @@ import { Code } from '../components/Code'
 import { useFeedback } from '../components/Feedback'
 import { Inline, RichText } from '../components/RichText'
 import { Mark } from '../components/Section'
-import { useHideNavPrimary } from '../components/TopNav'
+import { setLeaveGuard, useHideNavPrimary } from '../components/TopNav'
 import { ApiError, postInterest } from '../lib/api'
 import { useMe } from '../lib/me'
 import {
@@ -99,18 +99,26 @@ export function Quiz() {
     }
   }
 
-  const exit = async () => {
-    track('click', `quiz:exit:${step}`)
-    const solving = typeof step === 'number' && Object.keys(answers).length > 0
-    if (solving) {
-      const ok = await confirm({
+  const solving = typeof step === 'number' && Object.keys(answers).length > 0
+  const askLeave = useCallback(
+    () =>
+      confirm({
         title: '풀던 문제를 그만둘까요?',
         body: '지금까지 고른 답은 저장되지 않아요. 언제든 처음부터 다시 풀 수 있어요.',
         confirmLabel: '그만두기',
         cancelLabel: '계속 풀기',
-      })
-      if (!ok) return
-    }
+      }),
+    [confirm],
+  )
+  // 풀던 중에는 상단 메뉴·로고를 눌러도 먼저 묻는다 (메뉴를 다시 보이게 한 뒤 답이 말없이 사라졌다)
+  useEffect(() => {
+    setLeaveGuard(solving ? askLeave : null)
+    return () => setLeaveGuard(null)
+  }, [solving, askLeave])
+
+  const exit = async () => {
+    track('click', `quiz:exit:${step}`)
+    if (solving && !(await askLeave())) return
     navigate('/')
   }
 

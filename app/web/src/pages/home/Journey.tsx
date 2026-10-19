@@ -385,7 +385,10 @@ function Signpost({ sign }: { sign: (typeof SIGNS)[number] }) {
         className="absolute flex flex-col items-center justify-center text-center"
         style={{ left: bx0, top: by0, width: bx1 - bx0, height: by1 - by0 }}
       >
-        <span className="font-mono text-[12px] leading-none text-mark">{sign.mark}</span>
+        {/* 번호: 동그라미 문자(①)는 글꼴 안에서 작게 그려져 판 위에서 거의 안 보였다 → 남색 원 안의 숫자로 (2026-10-19) */}
+        <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-ink font-mono text-[13px] leading-none font-semibold text-white">
+          {'①②③④'.indexOf(sign.mark) + 1}
+        </span>
         <span className="mt-1 px-1 font-display text-[16px] leading-[1.25] font-extrabold">{sign.name}</span>
       </div>
       <div className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 whitespace-nowrap" style={{ top: h + 14 }}>

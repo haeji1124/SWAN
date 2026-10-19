@@ -89,7 +89,8 @@ export function Projects() {
           <Link
             to="/projects/new"
             onClick={() => track('click', 'projects:new')}
-            className="inline-flex rounded-btn bg-ink px-[26px] py-[13px] text-[16px] font-bold text-white hover:bg-ink-hover"
+            // 주 버튼은 메뉴의 [신청하기] 하나로 두고 화면 안의 행동은 보조 버튼 (아이디어·토이와 같은 규칙)
+            className="inline-flex rounded-btn bg-sky px-[26px] py-[13px] text-[16px] font-bold hover:bg-sky-hover active:bg-sky-press"
           >
             완성작 올리기
           </Link>
@@ -107,7 +108,8 @@ export function Projects() {
               aria-label="부서"
               value={dept ?? ''}
               onChange={(e) => setDept(e.target.value || null)}
-              className="ml-3 rounded-btn border border-line bg-surface px-3 py-2 text-[15px] outline-none focus:border-ink"
+              // 긴 부서 이름만큼 칸이 넓어지지 않게 폭을 정한다 (UI 체크리스트 06-1)
+              className="ml-3 w-[220px] truncate rounded-btn border border-line bg-surface px-3 py-2 text-[15px] outline-none focus:border-ink"
             >
               <option value="">모든 부서</option>
               {data.depts.map((d) => (

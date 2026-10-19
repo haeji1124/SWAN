@@ -14,8 +14,28 @@ const MENU = [
   { to: '/ideas', label: '아이디어 보드' },
 ]
 
+/* 떠나기 전에 묻기: 수준 테스트를 풀던 중처럼 떠나면 잃는 것이 있는 화면이 등록한다.
+ * 등록돼 있으면 상단 메뉴의 링크(로고·메뉴)를 누를 때 먼저 묻고, '떠난다'고 하면 그때 옮긴다 */
+let leaveGuard: (() => Promise<boolean>) | null = null
+export const setLeaveGuard = (fn: (() => Promise<boolean>) | null) => {
+  leaveGuard = fn
+}
+
 export function TopNav() {
   const { me } = useMe()
+  const navigate = useNavigate()
+  const guardLinks = (e: React.MouseEvent) => {
+    const a = (e.target as HTMLElement).closest('a')
+    if (!leaveGuard || !a || e.metaKey || e.ctrlKey) return
+    e.preventDefault()
+    e.stopPropagation()
+    const to = a.getAttribute('href') ?? '/'
+    leaveGuard().then((ok) => {
+      if (!ok) return
+      leaveGuard = null
+      navigate(to)
+    })
+  }
   const [scrolled, setScrolled] = useState(false)
 
   // 스크롤을 시작하면 위에 붙고 paper 바탕이 채워진다
@@ -28,6 +48,7 @@ export function TopNav() {
 
   return (
     <header
+      onClickCapture={guardLinks}
       className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${
         scrolled ? 'border-b border-line bg-paper' : 'border-b border-transparent bg-transparent'
       }`}
@@ -68,7 +89,11 @@ export function TopNav() {
         </div>
         <div className="flex items-center gap-5">
           {me?.logged_in && (
-            <span className="font-mono text-[13px] whitespace-nowrap text-muted max-[1180px]:hidden">
+            // 이름과 부서가 길면 메뉴 쪽으로 밀고 들어와서 폭을 정하고 부서 쪽을 줄임표로 자른다 (UI 체크리스트 06-1). 전체는 마우스를 올리면
+            <span
+              title={`${me.name} · ${me.dept}`}
+              className="max-w-[300px] truncate font-mono text-[13px] whitespace-nowrap text-muted max-[1180px]:hidden"
+            >
               {me.name} · {me.dept}
             </span>
           )}
