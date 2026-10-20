@@ -1,13 +1,5 @@
 // 가상 데이터. 실제 사내 정보가 아니다.
-// 완성작은 Phase 4, 아이디어는 Phase 5에서 서버 데이터로 바꾼다.
-
-export const VIRTUAL_SHOWCASE = [
-  { title: '불량 이미지 분류 도우미', cohort: 4, dept: '품질보증팀', likes: 31, effect: null },
-  { title: '설비 로그 자동 요약기', cohort: 4, dept: '설비기술팀', likes: 27, effect: '매일 30분 걸리던 로그 확인을 2분으로' },
-  { title: '주간 보고서 생성기', cohort: 3, dept: '생산관리팀', likes: 19, effect: null },
-  { title: '설비 알람 이력 대시보드', cohort: 2, dept: '공정기술 1팀', likes: 15, effect: null },
-  { title: '회의록 정리 도우미', cohort: 3, dept: '계측기술팀', likes: 12, effect: null },
-]
+// ※ 사내망 반입 전에 실제 내용으로 바꾸고 다시 빌드한다 (docs/deploy.md 1단계). 관리자 화면에서 고칠 수 없는 홈 문구다
 
 // 강사 (가상의 이름)
 export const VIRTUAL_INSTRUCTOR = {

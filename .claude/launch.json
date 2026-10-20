@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "app/web", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "swan-prod",
+      "runtimeExecutable": "app/server/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--app-dir", "app/server", "--port", "8100"],
+      "port": 8100
     }
   ]
 }

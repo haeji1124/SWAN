@@ -89,17 +89,18 @@ function Marquee({ items, reverse, big }: { items: string[]; reverse?: boolean; 
 
 export function Numbers({ data, load }: { data: HomeData | null; load: HomeLoad }) {
   const s = data?.stats
+  // 운영 DB를 막 만들어 졸업생 명단이 아직 없을 때: "0기 동안 · 0 · 0 · 0"과 빈 띠 대신 안내 한 줄 (Phase 8 빈 DB 확인)
+  const none = !!s && s.alumni === 0
   return (
     <Section name="home:03-numbers">
       <div className="page flex flex-col gap-10 border-t border-line pt-22 pb-18">
         {/* 섹션 제목 (UI 체크리스트 02-3: 제목만 읽어도 무엇이 나올지 알게). 보조 줄은 다른 섹션처럼 "//" 주석 */}
         {/* 이 섹션만 가운데 정렬 (사용자 요청 2026-10-18): 숫자 세 개가 왼쪽에 몰려 오른쪽이 비어 보였다 */}
         <div className="flex flex-col items-center gap-3 text-center">
-          <SectionTitle>{s ? `${s.cohorts}기 동안 함께한 사람들` : '지금까지 함께한 사람들'}</SectionTitle>
+          <SectionTitle>{s && !none ? `${s.cohorts}기 동안 함께한 사람들` : '지금까지 함께한 사람들'}</SectionTitle>
           {s?.first_cohort && (
-            <Mark className="text-[15px]">
-              {`// ${s.first_cohort}기 → ${s.last_cohort}기 수료생과 부서`}
-            </Mark>
+            // 읽어야 하는 정보라 줄 번호 색(mark) 대신 muted (Phase 8 접근성)
+            <span className="font-mono text-[15px] text-muted">{`// ${s.first_cohort}기 → ${s.last_cohort}기 수료생과 부서`}</span>
           )}
         </div>
         {/* 숫자가 오기 전·못 받았을 때도 자리를 지켜 아래 섹션이 들썩이지 않게 한다 */}
@@ -108,7 +109,8 @@ export function Numbers({ data, load }: { data: HomeData | null; load: HomeLoad 
             <DataNote load={load} what="수료 숫자를" />
           </div>
         )}
-        {s && (
+        {none && <p className="text-center text-[17px] text-muted">졸업생 명단이 올라오면 함께한 기수와 수료생, 부서 수가 여기에 보여요.</p>}
+        {s && !none && (
           <div data-reveal className="flex items-end justify-center">
             <div className="flex flex-col gap-1.5 pr-12">
               <CountUp value={s.cohorts} className="font-display text-[96px] leading-[0.9] font-extrabold tracking-[-0.03em]" />
@@ -125,7 +127,7 @@ export function Numbers({ data, load }: { data: HomeData | null; load: HomeLoad 
           </div>
         )}
       </div>
-      {data && (
+      {data && data.alumni_names.length > 0 && (
         <div className="relative">
           <PeekingDuck />
           {/* 이름 띠가 오리보다 앞에 있어서, 오리가 띠 뒤에서 고개를 내미는 것처럼 보인다 */}

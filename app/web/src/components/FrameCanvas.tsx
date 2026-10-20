@@ -32,22 +32,46 @@ export const FrameCanvas = forwardRef<FrameCanvasHandle, Props>(
 
     useImperativeHandle(ref, () => ({ draw, count: urls.length }), [urls])
 
+    // 그림은 캔버스가 화면 가까이(위아래로 화면 1.5배 안) 올 때 받기 시작한다.
+    // 처음엔 모든 섹션의 프레임을 한꺼번에 받아 홈 첫 방문이 약 11MB였다 (Phase 8 성능 점검)
     useEffect(() => {
       let loaded = 0
-      images.current = urls.map((u, i) => {
-        const img = new Image()
-        img.decoding = 'async'
-        img.onload = () => {
-          loaded += 1
-          if (i === pending.current) {
-            current.current = -1
-            draw(i)
+      images.current = []
+      const load = () => {
+        images.current = urls.map((u, i) => {
+          const img = new Image()
+          img.decoding = 'async'
+          img.onload = () => {
+            loaded += 1
+            if (i === pending.current) {
+              current.current = -1
+              draw(i)
+            }
+            if (loaded === urls.length) onReady?.()
           }
-          if (loaded === urls.length) onReady?.()
-        }
-        img.src = u
-        return img
-      })
+          img.src = u
+          return img
+        })
+      }
+      if (!canvas.current || typeof IntersectionObserver === 'undefined') {
+        load()
+        return
+      }
+      let started = false
+      const start = () => {
+        if (started) return
+        started = true
+        io.disconnect()
+        load()
+      }
+      const io = new IntersectionObserver(([e]) => e.isIntersecting && start(), { rootMargin: '150% 0px' })
+      io.observe(canvas.current)
+      // 화면에서 먼 프레임도 첫 화면이 뜬 뒤 한가할 때 미리 받아 둔다. 스크롤하는 도중에 받으면 장면이 끊겼다
+      const idle = window.setTimeout(start, 5000)
+      return () => {
+        io.disconnect()
+        window.clearTimeout(idle)
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [urls])
 

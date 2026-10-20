@@ -93,7 +93,7 @@ export function AdminsAdmin() {
                   <td className="text-[14px] text-muted">{TYPE_LABEL[u.type]}</td>
                   <td className="text-right">
                     {u.me ? (
-                      <span className="text-[13px] text-disabled-ink">해제 불가</span>
+                      <span className="text-[13px] text-muted">해제 불가</span>
                     ) : (
                       <button type="button" onClick={() => remove(u)} className="text-[14px] font-semibold text-error underline-offset-4 hover:underline">
                         해제

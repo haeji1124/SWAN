@@ -228,7 +228,8 @@ function Start({ info, onStart }: { info: QuizInfo; onStart: () => void }) {
         <ol className="flex flex-col border-t border-ink">
           {kinds.map(([n, what, how]) => (
             <li key={n} className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-line py-4">
-              <span className="font-mono text-[15px] text-mark">{n}</span>
+              {/* 문제 번호 범위는 읽어야 하는 정보라 muted (mark는 대비 3:1, Phase 8) */}
+              <span className="font-mono text-[15px] text-muted">{n}</span>
               <span className="text-[18px] font-semibold">{what}</span>
               <span className="font-mono text-[13px] text-muted">// {how}</span>
             </li>
@@ -259,7 +260,7 @@ function Start({ info, onStart }: { info: QuizInfo; onStart: () => void }) {
             <img src={s.src} alt="" className={`${s.h} origin-bottom ${s.idle}`} />
             <figcaption className="flex flex-col items-center gap-1">
               <span className="text-[16px] font-semibold">{s.name}</span>
-              <span className="font-mono text-[13px] text-mark">{s.range}</span>
+              <span className="font-mono text-[13px] text-muted">{s.range}</span>
             </figcaption>
           </figure>
         ))}

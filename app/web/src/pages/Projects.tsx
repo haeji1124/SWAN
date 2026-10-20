@@ -26,10 +26,11 @@ import { track } from '../lib/track'
 
 const errText = (e: unknown) => (e instanceof ApiError ? e.message : '잠시 후 다시 시도해 주세요')
 
+/** what은 조사까지: "완성작을" (받침에 따라 을/를이 달라서 부르는 쪽이 정한다) */
 function LoadFailed({ what, onRetry }: { what: string; onRetry: () => void }) {
   return (
     <div className="flex flex-col items-start gap-4 py-10">
-      <p className="text-[20px] font-bold">{what}를 불러오지 못했어요</p>
+      <p className="text-[20px] font-bold">{what} 불러오지 못했어요</p>
       <Button variant="secondary" onClick={onRetry}>
         다시 시도
       </Button>
@@ -135,7 +136,7 @@ export function Projects() {
       )}
 
       {error ? (
-        <LoadFailed what="완성작" onRetry={load} />
+        <LoadFailed what="완성작을" onRetry={load} />
       ) : !data ? (
         <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 완성작을 불러오는 중…</p>
       ) : data.total === 0 ? (
@@ -214,7 +215,7 @@ export function ProjectDetail() {
             <p className="text-[17px] text-muted">지워졌거나 아직 공개되지 않은 완성작이에요.</p>
           </div>
         ) : error ? (
-          <LoadFailed what="완성작" onRetry={load} />
+          <LoadFailed what="완성작을" onRetry={load} />
         ) : !p ? (
           <p className="font-mono text-[15px] text-muted motion-safe:animate-pulse">// 완성작을 불러오는 중…</p>
         ) : (

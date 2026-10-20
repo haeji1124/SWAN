@@ -197,3 +197,5 @@ html {
 .swan-md .toastui-editor-contents pre { font-family: var(--font-mono); }
 .swan-md .toastui-editor-defaultUI { border-color: var(--color-line); border-radius: 10px; }
 .swan-md-view .toastui-editor-contents { padding: 0; }
+/* 편집기 기본 인용문 색(#999)은 미색 바탕에서 대비 2.7:1이라 muted로 (Phase 8 접근성) */
+.swan-md .toastui-editor-contents blockquote p { color: var(--color-muted); }

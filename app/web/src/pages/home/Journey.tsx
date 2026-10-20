@@ -258,7 +258,7 @@ export function Journey() {
             <SectionTitle>3개월 동안, 이 길을 걸어요</SectionTitle>
             <p data-reveal className="relative z-10 max-w-[560px] text-[17px] leading-[1.65] font-medium text-ink/80">
               이정표를 하나씩 지날 때마다 자라요. 길 끝에서는 강사가 기다리고 있어요.
-              {reduced && <span className="mt-1 block font-mono text-[13px] text-mark">{'// 길은 옆으로 넘겨 볼 수 있어요 →'}</span>}
+              {reduced && <span className="mt-1 block font-mono text-[13px] text-muted">{'// 길은 옆으로 넘겨 볼 수 있어요 →'}</span>}
             </p>
           </div>
 

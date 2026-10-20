@@ -66,7 +66,7 @@ export function Making() {
 function Row({ label, value }: { label: string; value?: string }) {
   return (
     <>
-      <dt className="font-mono text-[14px] text-mark">{label}</dt>
+      <dt className="font-mono text-[14px] text-muted">{label}</dt>
       <dd className={value ? 'font-semibold' : 'text-muted'}>{value || UNSET}</dd>
     </>
   )

@@ -30,10 +30,11 @@ import { dayLabel } from './Ideas'
 const errText = (e: unknown) => (e instanceof ApiError ? e.message : '잠시 후 다시 시도해 주세요')
 const MEMBERS_ONLY = '글쓰기와 참여는 SWAN 수강생과 졸업생만 할 수 있어요'
 
+/** what은 조사까지: "모집 글을" */
 function LoadFailed({ what, onRetry }: { what: string; onRetry: () => void }) {
   return (
     <div className="flex flex-col items-start gap-4 py-10">
-      <p className="text-[20px] font-bold">{what}을 불러오지 못했어요</p>
+      <p className="text-[20px] font-bold">{what} 불러오지 못했어요</p>
       <Button variant="secondary" onClick={onRetry}>
         다시 시도
       </Button>
@@ -76,7 +77,7 @@ export function Toys() {
       </div>
 
       {error ? (
-        <LoadFailed what="모집 글" onRetry={load} />
+        <LoadFailed what="모집 글을" onRetry={load} />
       ) : !data ? (
         <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 모집 글을 불러오는 중…</p>
       ) : data.items.length === 0 ? (
@@ -138,7 +139,7 @@ export function ToyDetail() {
     setError(null)
     getToy(Number(id))
       .then(setT)
-      .catch((e) => setError(errText(e)))
+      .catch((e) => setError(e instanceof ApiError && e.status === 404 ? 'notfound' : errText(e)))
   }, [id])
   useEffect(load, [load])
 
@@ -148,7 +149,17 @@ export function ToyDetail() {
         <Link to="/toys" className="text-[15px] font-semibold underline-offset-4 hover:underline">
           ← 토이프로젝트
         </Link>
-        {error ? <LoadFailed what="모집 글" onRetry={load} /> : <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 불러오는 중…</p>}
+        {error === 'notfound' ? (
+          // 없는 번호·지운 글·숨긴 글은 다시 시도해도 같아서 안내만 (완성작 상세와 같은 모양)
+          <div className="flex flex-col items-start gap-3 py-16">
+            <p className="font-display text-[34px] font-extrabold">찾는 모집 글이 없어요</p>
+            <p className="text-[17px] text-muted">지워졌거나 관리자가 숨긴 모집 글이에요.</p>
+          </div>
+        ) : error ? (
+          <LoadFailed what="모집 글을" onRetry={load} />
+        ) : (
+          <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 불러오는 중…</p>
+        )}
       </section>
     )
 
