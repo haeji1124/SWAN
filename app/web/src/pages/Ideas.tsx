@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { IdeaBadge, VoteButton } from '../components/BoardParts'
 import { useFeedback } from '../components/Feedback'
+import { EmptyState } from '../components/EmptyState'
 import { Mark } from '../components/Section'
 import { ApiError } from '../lib/api'
 import {
@@ -154,10 +155,7 @@ export function Ideas() {
           ) : !items ? (
             <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 아이디어를 불러오는 중…</p>
           ) : items.length === 0 ? (
-            <div className="flex flex-col items-start gap-3 border-y border-line py-20">
-              <p className="font-display text-[30px] font-extrabold">아직 남겨진 아이디어가 없어요</p>
-              <p className="text-[17px] text-muted">매주 손으로 반복하는 일, 있으면 좋겠다 싶은 작은 도구를 첫 번째로 남겨 주세요.</p>
-            </div>
+            <EmptyState title="아직 남겨진 아이디어가 없어요" body="매주 손으로 반복하는 일, 있으면 좋겠다 싶은 작은 도구를 첫 번째로 남겨 주세요." />
           ) : (
             <ol className="flex flex-col border-t border-line">
               {items.map((idea) => (

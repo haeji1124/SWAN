@@ -22,7 +22,7 @@
 
 ## 기술
 - PC 전용 웹. 사내망에서 쓴다
-- 화면: React + Vite + TypeScript + Tailwind CSS / 움직임: GSAP ScrollTrigger / 3D: three.js(react-three-fiber)를 한두 곳에만 (홈 인트로의 오리·백조, 접수 완료) / 편집기: Toast UI Editor
+- 화면: React + Vite + TypeScript + Tailwind CSS / 움직임: GSAP ScrollTrigger / 캐릭터: 블렌더로 렌더한 **그림 프레임**(`public/frames/`)을 캔버스로 넘긴다 (2026-10-20 확정. three.js 3D는 홈 인트로에 `?hero=3d`로만 남김) / 편집기: Toast UI Editor
 - 서버: Python FastAPI / DB: SQLite(SQLAlchemy) / 파일: 서버 로컬 폴더
 - 배포: 화면을 빌드해 FastAPI가 함께 서비스하는 한 덩어리
 - **외부 연결 금지**: 글꼴, 라이브러리, 이미지, 영상을 모두 사이트에 포함한다. CDN과 외부 글꼴 링크를 쓰지 않는다
@@ -72,7 +72,8 @@
   - 글꼴: 제목 NanumSquareRound 800 · 본문 Pretendard · 줄 번호와 주석 JetBrains Mono. 글꼴 파일은 사이트에 포함한다
   - 캐릭터: 안경을 쓰고 노트북을 든 매끈한 3D 오리(수강생)와 강사 백조(남색 니트 조끼 + 흰 셔츠 깃). 뼈대와 움직임(`idle` 숨쉬기 · `wave` 손 흔들기 · `tilt` 갸웃 · `hop` 뛰기)이 들어 있다. 파일 `SWAN/design/3d/duckling-v2/duckling-v2-rigged.glb`, `SWAN/design/3d/instructor/instructor-rigged.glb`. 첫 화면 배치 기준 `SWAN/design/hero-3d/hero-a.png`
   - 수준 테스트 성장 단계는 3D 정지 그림 `SWAN/design/stages-3d/` (알에서 나온 오리 / 아기 오리 / 어린 백조). 어린 백조는 조끼 없는 백조라 강사와 구분된다
-  - 3D를 쓸 수 없거나 움직임 줄이기 설정이면 같은 자세의 정지 그림(`SWAN/design/hero-3d/*-c.png`)을 보여준다
+  - 움직임 줄이기 설정이면 프레임을 넘기지 않고 첫 장면(같은 자세의 정지 그림)으로 멈춰 보여준다
+  - 캐릭터를 고치거나 새 동작을 만들면 정지 그림 한 장으로 먼저 확인받고 나서 프레임을 뽑는다
 - 메인 문구: "날개는 AI가 달아 줍니다. 나는 법은 여기서 배웁니다." / 서브(잠정): "AI 시대, SW를 보는 눈을 기릅니다."
 - 하지 말 것: 그라디언트, 빛 번짐, 반투명 유리 카드, 똑같은 카드 줄의 반복, 모든 것을 가운데 정렬, 제목 위의 작은 영어 대문자 라벨, 이모지 아이콘
 - UX: 고르는 방식 우선, 타이핑은 최소로. 저장하면 화면 구석에 짧은 확인. 되돌릴 수 없는 일(신청 취소, 삭제)은 한 번 더 묻는다

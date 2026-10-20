@@ -172,12 +172,15 @@ export function Quiz() {
   return (
     <div className="min-h-[calc(100vh-88px)] bg-paper">
       {/* 상단 메뉴 바로 아래 얇은 줄: 어디인지 · 진행 · [나가기](풀던 중이면 한 번 더 묻는다) */}
-      <div className="page flex h-[64px] items-center justify-between gap-8 border-b border-line">
-        <span className="font-mono text-[14px] text-mark">// 수준 테스트</span>
-        {typeof step === 'number' && <Progress at={step} total={total} />}
-        <button type="button" onClick={exit} className="text-[15px] font-semibold underline-offset-4 hover:underline">
-          나가기
-        </button>
+      {/* 선은 화면 끝까지 (구현 전달 3장: 띠는 화면 끝까지), 내용은 페이지 폭 안 */}
+      <div className="border-b border-line">
+        <div className="page flex h-[64px] items-center justify-between gap-8">
+          <span className="font-mono text-[14px] text-mark">// 수준 테스트</span>
+          {typeof step === 'number' && <Progress at={step} total={total} />}
+          <button type="button" onClick={exit} className="text-[15px] font-semibold underline-offset-4 hover:underline">
+            나가기
+          </button>
+        </div>
       </div>
       <div className="page pt-14 pb-32">{body}</div>
     </div>

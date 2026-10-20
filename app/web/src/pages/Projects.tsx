@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { useFeedback } from '../components/Feedback'
+import { EmptyState } from '../components/EmptyState'
 import { MarkdownView } from '../components/Markdown'
 import { Heart, ProjectCard, StatusBadge, authorLine } from '../components/ProjectParts'
 import { Mark } from '../components/Section'
@@ -138,10 +139,7 @@ export function Projects() {
       ) : !data ? (
         <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 완성작을 불러오는 중…</p>
       ) : data.total === 0 ? (
-        <div className="flex flex-col items-start gap-3 py-20">
-          <p className="font-display text-[34px] font-extrabold">곧 졸업생들의 작품이 걸립니다</p>
-          <p className="text-[17px] text-muted">승인된 완성작이 생기면 이곳에 모여요.</p>
-        </div>
+        <EmptyState className="mt-10" title="곧 졸업생들의 작품이 걸립니다" body="승인된 완성작이 생기면 이곳에 모여요." />
       ) : data.items.length === 0 ? (
         <p className="border-y border-line py-16 text-center text-[17px] text-muted">
           이 조건에 맞는 완성작이 아직 없어요.{' '}

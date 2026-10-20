@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Confetti, type ConfettiHandle } from '../components/Confetti'
+import { FrameCanvas, frameUrls, type FrameCanvasHandle } from '../components/FrameCanvas'
 import { useFeedback } from '../components/Feedback'
 import {
   ApiError,
@@ -18,6 +19,7 @@ import {
   type PythonExp,
 } from '../lib/api'
 import { useMe } from '../lib/me'
+import { prefersReducedMotion } from '../lib/motion'
 import { track } from '../lib/track'
 import { dLabel } from './home/types'
 
@@ -64,14 +66,17 @@ export function Apply() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="page flex h-[88px] items-center justify-between border-b border-line">
-        <Link to="/" className="flex items-baseline gap-2" onClick={() => track('click', 'apply:logo')}>
-          <span className="font-mono text-[15px] text-mark">&gt;_</span>
-          <span className="font-display text-[26px] font-extrabold tracking-[0.02em]">SWAN</span>
-        </Link>
-        <Link to="/" className="text-[16px] font-semibold underline-offset-4 hover:underline" onClick={() => track('click', 'apply:exit')}>
-          나가기
-        </Link>
+      {/* 선은 화면 끝까지, 내용은 페이지 폭 안 (상단 메뉴와 같게) */}
+      <header className="border-b border-line">
+        <div className="page flex h-[88px] items-center justify-between">
+          <Link to="/" className="flex items-baseline gap-2" onClick={() => track('click', 'apply:logo')}>
+            <span className="font-mono text-[15px] text-mark">&gt;_</span>
+            <span className="font-display text-[26px] font-extrabold tracking-[0.02em]">SWAN</span>
+          </Link>
+          <Link to="/" className="text-[16px] font-semibold underline-offset-4 hover:underline" onClick={() => track('click', 'apply:exit')}>
+            나가기
+          </Link>
+        </div>
       </header>
       <main className="page pt-20 pb-32">{body}</main>
     </div>
@@ -213,17 +218,40 @@ function ApplyForm({ cohort, onDone }: { cohort: CohortInfo; onDone: (r: MyAppli
 }
 
 /* ---------- 접수 완료 ---------- */
+// 축하: 오리가 컨페티 속에서 두 번 폴짝 (히어로와 같은 duck-hop 18장, 초당 12장). 움직임 줄이기면 서 있는 장면만
+const HOP = frameUrls('duck-hop', 18)
+const HOP_SIZE = 585 // 프레임 720 안에서 오리 키 369px → 화면에서 약 300px
+const HOP_TIMES = 2
+
 function Done({ result }: { result: MyApplication }) {
   const confetti = useRef<ConfettiHandle>(null)
+  const hop = useRef<FrameCanvasHandle>(null)
   useEffect(() => {
+    hop.current?.draw(0)
+    if (prefersReducedMotion()) return
     const id = window.setTimeout(() => confetti.current?.burst(180, 260), 200)
-    return () => window.clearTimeout(id)
+    let f = 0
+    let timer = 0
+    const start = window.setTimeout(() => {
+      timer = window.setInterval(() => {
+        f += 1
+        hop.current?.draw(f % HOP.length)
+        if (f >= HOP.length * HOP_TIMES - 1) window.clearInterval(timer)
+      }, 1000 / 12)
+    }, 200)
+    return () => {
+      window.clearTimeout(id)
+      window.clearTimeout(start)
+      window.clearInterval(timer)
+    }
   }, [])
   return (
     <div className="relative grid grid-cols-[360px_minmax(0,1fr)] items-center gap-24">
       <div className="relative flex h-[420px] items-end justify-center">
-        {/* 축하 연출 자리: 3D 오리 hop은 Phase 7에서. 지금은 아기 오리 그림이 콩 뛰고 컨페티가 터진다 */}
-        <img src="/images/stage-2.webp" alt="" className="h-[300px] origin-bottom motion-safe:animate-[hop_.6s_cubic-bezier(.3,.7,.2,1)_.2s_2]" />
+        {/* 프레임 안에서 발은 아래 11% 지점이라 그만큼 내려 발이 바닥에 닿게 한다 */}
+        <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -HOP_SIZE * 0.11, width: HOP_SIZE, height: HOP_SIZE }} role="img" aria-label="안경 쓴 오리가 폴짝 뛰며 축하한다">
+          <FrameCanvas ref={hop} urls={HOP} size={HOP_SIZE} />
+        </div>
         <Confetti ref={confetti} width={360} height={420} className="absolute inset-0" />
       </div>
       <div className="flex flex-col gap-8">

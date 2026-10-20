@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { ToyBadge } from '../components/BoardParts'
 import { useFeedback } from '../components/Feedback'
+import { EmptyState } from '../components/EmptyState'
 import { Mark } from '../components/Section'
 import { ApiError } from '../lib/api'
 import {
@@ -79,12 +80,11 @@ export function Toys() {
       ) : !data ? (
         <p className="py-10 font-mono text-[15px] text-muted motion-safe:animate-pulse">// 모집 글을 불러오는 중…</p>
       ) : data.items.length === 0 ? (
-        <div className="flex flex-col items-start gap-3 py-20">
-          <p className="font-display text-[30px] font-extrabold">아직 모집 글이 없어요</p>
-          <p className="text-[17px] text-muted">
-            {data.can_write ? '같이 만들어 볼 사람을 찾고 있다면 첫 모집 글을 올려 주세요.' : '수강생과 졸업생이 함께 만들 사람을 찾으면 이곳에 올라와요.'}
-          </p>
-        </div>
+        <EmptyState
+          className="mt-10"
+          title="아직 모집 글이 없어요"
+          body={data.can_write ? '같이 만들어 볼 사람을 찾고 있다면 첫 모집 글을 올려 주세요.' : '수강생과 졸업생이 함께 만들 사람을 찾으면 이곳에 올라와요.'}
+        />
       ) : (
         <ol className="flex flex-col">
           {data.items.map((t) => (

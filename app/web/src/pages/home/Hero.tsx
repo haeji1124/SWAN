@@ -8,6 +8,7 @@ import { Confetti, type ConfettiHandle } from '../../components/Confetti'
 import { getHeroMode, getMorphMode, webglAvailable } from '../../lib/heroMode'
 import { prefersReducedMotion } from '../../lib/motion'
 import { DataNote } from '../../components/DataNote'
+import { track } from '../../lib/track'
 import { SwanLogoMark } from '../../components/SwanLogo'
 import { dLabel, type HomeData, type HomeLoad } from './types'
 
@@ -232,6 +233,10 @@ const GROWN_WAVE = frameUrls('cygnet-wave', 30) // 변신 뒤 강사와 함께 �
 // 변신 뒤 어린 백조가 손을 흔드는 동안 강사는 숨쉬며 눈웃음("^ ^")을 짓는다 (블렌더 smile_arc + 눈동자 지우기)
 const TEACHER_WAVE = frameUrls('instructor-smile', 36)
 const GREET_TIMES = 2
+// 맨 위(정지 상태)에서 누르면 반응한다 (Phase 7, 3D 대신 그림 프레임으로): 오리는 움츠렸다 폴짝, 강사는 갸웃.
+// 블렌더 duckling_v2_hop·instructor_tilt를 히어로 숨쉬기와 같은 자리로 2칸씩 렌더 (원본 design/hero-frames/)
+const DUCK_HOP = frameUrls('duck-hop', 18)
+const TEACHER_TILT = frameUrls('instructor-tilt-hero', 27)
 const SIZE = 720 // 캔버스 한 변 (프레임은 모두 같은 카메라로 찍어 캐릭터 크기가 맞는다)
 
 type Phase = 'wave' | 'duck' | 'tilt' | 'morph' | 'grown'
@@ -247,6 +252,12 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
   const grownWave = useRef<FrameCanvasHandle>(null)
   const teacherWave = useRef<FrameCanvasHandle>(null)
   const greetStart = useRef(-1) // 함께 손 흔들기를 시작한 시각 (performance.now), 아니면 -1
+  const hop = useRef<FrameCanvasHandle>(null)
+  const teacherTilt = useRef<FrameCanvasHandle>(null)
+  const hopStart = useRef(-1) // 눌러서 반응을 시작한 시각, 아니면 -1
+  const teacherTiltStart = useRef(-1)
+  const [hopping, setHopping] = useState(false)
+  const [teacherTilting, setTeacherTilting] = useState(false)
   const [greeting, setGreeting] = useState(false)
   const [phase, setPhase] = useState<Phase>(reduced ? 'duck' : 'wave')
   const [leaning, setLeaning] = useState(false)
@@ -270,6 +281,23 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
       const f = Math.floor(((t - t0) / 1000) * 12)
       teacher.current?.draw(f % 36)
       grown.current?.draw(f % 36)
+      // 눌러서 시작한 반응은 한 번 재생하고 숨쉬기로 돌아간다
+      if (hopStart.current >= 0) {
+        const h = Math.floor(((t - hopStart.current) / 1000) * 12)
+        if (h < DUCK_HOP.length) hop.current?.draw(h)
+        else {
+          hopStart.current = -1
+          setHopping(false)
+        }
+      }
+      if (teacherTiltStart.current >= 0) {
+        const h = Math.floor(((t - teacherTiltStart.current) / 1000) * 12)
+        if (h < TEACHER_TILT.length) teacherTilt.current?.draw(h)
+        else {
+          teacherTiltStart.current = -1
+          setTeacherTilting(false)
+        }
+      }
       if (f < waveLen) wave.current?.draw(f % DUCK_WAVE.length)
       if (greetStart.current >= 0) {
         const g = Math.floor(((t - greetStart.current) / 1000) * 12)
@@ -347,6 +375,22 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
   )
   const show = (p: Phase) => `absolute inset-0 ${phase === p ? '' : 'invisible'}`
   const showDuck = phase === 'duck' || phase === 'tilt'
+  // 누르기 반응은 맨 위에서 손 흔들기를 마친 뒤(오리가 숨쉬는 동안)에만. 움직임 줄이기면 반응하지 않는다
+  const canReact = !reduced && phase === 'duck' && !leaning && !greeting
+  const react = (who: 'duck' | 'teacher') => {
+    if (!canReact) return
+    track('click', `home:hero:${who}`)
+    if (who === 'duck' && hopStart.current < 0) {
+      hop.current?.draw(0)
+      hopStart.current = performance.now()
+      setHopping(true)
+    }
+    if (who === 'teacher' && teacherTiltStart.current < 0) {
+      teacherTilt.current?.draw(0)
+      teacherTiltStart.current = performance.now()
+      setTeacherTilting(true)
+    }
+  }
 
   // 프레임 안에서 발은 아래에서 11% 지점에 있다. 그만큼 내려서 발이 연못 가운데(아래 110px)에 닿게 한다.
   // 캐릭터는 프레임 가로 가운데에 있으니, 캔버스 왼쪽 = 캐릭터 중심 - SIZE/2
@@ -357,7 +401,8 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
     <>
       <div className="absolute inset-0" style={{ filter: CHARACTER_FILTER }}>
         <div className="absolute" style={{ left: 625 - SIZE / 2, bottom, width: SIZE, height: SIZE }}>
-          <FrameCanvas ref={teacher} urls={TEACHER_IDLE} size={SIZE} className={`absolute inset-0 ${leaning || greeting ? 'invisible' : ''}`} />
+          <FrameCanvas ref={teacher} urls={TEACHER_IDLE} size={SIZE} className={`absolute inset-0 ${leaning || greeting || teacherTilting ? 'invisible' : ''}`} />
+          <FrameCanvas ref={teacherTilt} urls={TEACHER_TILT} size={SIZE} className={`absolute inset-0 ${teacherTilting && !leaning && !greeting ? '' : 'invisible'}`} />
           {MORPH === 'pop' && (
             <FrameCanvas ref={teacherWave} urls={TEACHER_WAVE} size={SIZE} className={`absolute inset-0 ${greeting && !leaning ? '' : 'invisible'}`} />
           )}
@@ -368,7 +413,8 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
         <div className="absolute" style={{ left: 330 - SIZE / 2, bottom, width: SIZE, height: SIZE }}>
           <FrameCanvas ref={wave} urls={DUCK_WAVE} size={SIZE} className={show('wave')} />
           <div ref={duckBox} className={`absolute inset-0 ${showDuck ? '' : 'invisible'}`} style={origin}>
-            <FrameCanvas ref={duck} urls={DUCK_IDLE} size={SIZE} className={`absolute inset-0 ${phase === 'duck' ? '' : 'invisible'}`} />
+            <FrameCanvas ref={duck} urls={DUCK_IDLE} size={SIZE} className={`absolute inset-0 ${phase === 'duck' && !hopping ? '' : 'invisible'}`} />
+            <FrameCanvas ref={hop} urls={DUCK_HOP} size={SIZE} className={`absolute inset-0 ${phase === 'duck' && hopping ? '' : 'invisible'}`} />
             {MORPH === 'pop' && (
               <FrameCanvas ref={tilt} urls={DUCK_TILT} size={SIZE} className={`absolute inset-0 ${phase === 'tilt' ? '' : 'invisible'}`} />
             )}
@@ -382,6 +428,23 @@ function FrameStage({ progress, reduced }: { progress: Progress; reduced: boolea
           </div>
         </div>
       </div>
+      {/* 누르는 자리: 캐릭터 몸통 위의 투명한 버튼 (무대 좌표, 발은 아래 110px) */}
+      {canReact && (
+        <>
+          <button
+            type="button"
+            aria-label="오리를 눌러 보세요"
+            onClick={() => react('duck')}
+            className="absolute bottom-[110px] left-[250px] h-[250px] w-[160px] cursor-pointer rounded-[40%]"
+          />
+          <button
+            type="button"
+            aria-label="강사 백조를 눌러 보세요"
+            onClick={() => react('teacher')}
+            className="absolute bottom-[110px] left-[520px] h-[400px] w-[210px] cursor-pointer rounded-[40%]"
+          />
+        </>
+      )}
       {MORPH === 'pop' && !reduced && <KnowledgeFlow active={flowing} />}
       <Confetti ref={confetti} width={STAGE_W} height={STAGE_H} className="absolute inset-0" />
     </>

@@ -5,6 +5,7 @@ import { Mark, Section, SectionTitle } from '../../components/Section'
 import { PrimaryAction } from '../../components/TopNav'
 import { VIRTUAL_PART_WORKS } from '../../data/virtual'
 import { IdeaBadge } from '../../components/BoardParts'
+import { EmptyState } from '../../components/EmptyState'
 import { track } from '../../lib/track'
 import { DataNote } from '../../components/DataNote'
 import { FrameCanvas, frameUrls, type FrameCanvasHandle } from '../../components/FrameCanvas'
@@ -160,16 +161,16 @@ export function IdeasPreview({ data, load }: { data: HomeData | null; load: Home
             <DataNote load={load} what="아이디어를" />
           </div>
         ) : items.length === 0 ? (
-          <div data-reveal className="flex flex-col items-start gap-3 border-y border-line py-14">
-            <p className="font-display text-[28px] font-extrabold">아직 남겨진 아이디어가 없어요</p>
-            <p className="text-[17px] text-muted">매주 손으로 반복하는 일이 있다면 첫 번째로 남겨 주세요.</p>
-            <Link
-              to="/ideas"
-              onClick={() => track('click', 'home:ideas:first')}
-              className="mt-2 text-[16px] font-semibold underline underline-offset-4"
-            >
-              첫 아이디어 남기기 →
-            </Link>
+          <div data-reveal>
+            <EmptyState
+              title="아직 남겨진 아이디어가 없어요"
+              body="매주 손으로 반복하는 일이 있다면 첫 번째로 남겨 주세요."
+              action={
+                <Link to="/ideas" onClick={() => track('click', 'home:ideas:first')} className="text-[16px] font-semibold underline underline-offset-4">
+                  첫 아이디어 남기기 →
+                </Link>
+              }
+            />
           </div>
         ) : (
           <ol className="flex flex-col">

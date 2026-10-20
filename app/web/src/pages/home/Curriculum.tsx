@@ -1,7 +1,10 @@
 // 홈 섹션 6: 커리큘럼. 배우는 흐름 4단계 + 실습 프로젝트 모음(중심) + 목표·수강 안내·맞는 사람
 // 내용은 planning/v3-1013/curriculum.md (실제 4기 자료 + 5기 바이브코딩 단원 잠정안)
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Mark, Placeholder, Section, SectionTitle } from '../../components/Section'
+import { prefersReducedMotion } from '../../lib/motion'
 import { track } from '../../lib/track'
 import { DataNote } from '../../components/DataNote'
 import type { HomeData, HomeLoad, PracticeProject, Unit } from './types'
@@ -46,6 +49,23 @@ function Stages({ units, load }: { units: Unit[]; load: HomeLoad }) {
     track('click', `home:curriculum:stage-${n}`)
   }
 
+  // 단계 등장 (구현 전달 4장 움직임 표): ①부터 아래에서 위로 0.1초 간격으로 쌓이고, ④는 위에서 내려와 얹힌다.
+  // 섹션 공통 등장([data-reveal])은 위에서부터 차례로 올라와서 이 순서가 거꾸로 보였다
+  const stack = useRef<HTMLDivElement>(null)
+  useGSAP(
+    () => {
+      if (prefersReducedMotion() || !stack.current) return
+      const items = [...stack.current.querySelectorAll<HTMLElement>('[data-stage]')]
+      const lower = items.filter((el) => el.dataset.stage !== '4').reverse() // ① ② ③ 순서
+      const top = items.find((el) => el.dataset.stage === '4')
+      // 도착 값을 못 박는다(fromTo): from만 쓰면 다시 실행될 때 움직이던 중간 값을 도착 값으로 잡아 반쯤 투명한 채 멈췄다
+      const tl = gsap.timeline({ scrollTrigger: { trigger: stack.current, start: 'top 78%', once: true } })
+      tl.fromTo(lower, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out', stagger: 0.1 })
+      if (top) tl.fromTo(top, { y: -32, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'back.out(1.6)' }, '-=0.1')
+    },
+    { scope: stack },
+  )
+
   return (
     <div className="grid grid-cols-[360px_minmax(0,1fr)] gap-18">
       <div className="flex flex-col gap-5">
@@ -60,13 +80,13 @@ function Stages({ units, load }: { units: Unit[]; load: HomeLoad }) {
           아래 세 단계 위에 AI와 함께 만들기가 얹힙니다.
         </p>
       </div>
-      <div className="flex flex-col">
+      <div ref={stack} className="flex flex-col">
         {STAGES.map((s) => {
           const isOpen = open === s.n
           const list = byStage(s.n)
           if (s.n === 4) {
             return (
-              <div key={s.n} data-reveal className="mb-3 flex flex-col gap-6 rounded-dialog bg-sky px-9 py-8">
+              <div key={s.n} data-stage={s.n} className="mb-3 flex flex-col gap-6 rounded-dialog bg-sky px-9 py-8">
                 <button className="flex items-center gap-4 text-left" onClick={() => toggle(4)} aria-expanded={isOpen}>
                   <span className="font-mono text-[15px] text-ink/70">④</span>
                   <span className="font-display text-[30px] font-extrabold">AI와 함께 만들기</span>
@@ -92,7 +112,7 @@ function Stages({ units, load }: { units: Unit[]; load: HomeLoad }) {
             )
           }
           return (
-            <div key={s.n} data-reveal className={`border-t border-line ${s.n === 1 ? 'border-b' : ''}`}>
+            <div key={s.n} data-stage={s.n} className={`border-t border-line ${s.n === 1 ? 'border-b' : ''}`}>
               <button
                 className="grid w-full grid-cols-[40px_180px_minmax(0,1fr)_auto] items-baseline px-9 py-6 text-left text-[17px] leading-relaxed hover:bg-sky/30"
                 onClick={() => toggle(s.n)}

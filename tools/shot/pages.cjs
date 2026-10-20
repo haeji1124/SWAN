@@ -8,7 +8,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   fs.mkdirSync(out, { recursive: true });
   const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new' });
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900 });
+  // 창 크기: 기본 1440×900, 환경 변수 W·H로 바꾼다 (예: W=1920 H=1080)
+  await page.setViewport({ width: Number(process.env.W) || 1440, height: Number(process.env.H) || 900 });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 160)); });

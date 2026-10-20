@@ -10,6 +10,7 @@ import { CountUp, prefersReducedMotion } from '../../lib/motion'
 import { CHARACTER_FILTER } from './Hero'
 import { track } from '../../lib/track'
 import { DataNote } from '../../components/DataNote'
+import { EmptyState } from '../../components/EmptyState'
 import { dLabel, type HomeData, type HomeLoad } from './types'
 
 /* ---------- 2. 한 줄 소개 ---------- */
@@ -217,9 +218,8 @@ export function Showcase({ data, load }: { data: HomeData | null; load: HomeLoad
         </div>
       ) : !first ? (
         // 0개 상태 (UI 체크리스트 06-2): 빈 칸 대신 곧 걸린다는 안내
-        <div data-reveal className="flex flex-col gap-3 border-y border-line py-16">
-          <p className="font-display text-[30px] font-extrabold">곧 졸업생들의 작품이 걸립니다</p>
-          <p className="text-[17px] text-muted">승인된 완성작이 생기면 이곳에 좋아요가 많은 순으로 보여요.</p>
+        <div data-reveal>
+          <EmptyState title="곧 졸업생들의 작품이 걸립니다" body="승인된 완성작이 생기면 이곳에 좋아요가 많은 순으로 보여요." />
         </div>
       ) : (
         <div className={`grid gap-x-8 gap-y-10 ${rest.length ? 'grid-cols-[1.5fr_1fr_1fr] grid-rows-[auto_auto]' : 'grid-cols-[minmax(0,860px)]'}`}>
