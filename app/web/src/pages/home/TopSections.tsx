@@ -125,12 +125,74 @@ export function Numbers({ data, load }: { data: HomeData | null; load: HomeLoad 
         )}
       </div>
       {data && (
-        <div className="flex flex-col gap-3.5 bg-sky py-6" aria-label="졸업생 이름과 참여 부서">
-          <Marquee items={data.alumni_names} big />
-          <Marquee items={data.dept_names} reverse />
+        <div className="relative">
+          <PeekingDuck />
+          {/* 이름 띠가 오리보다 앞에 있어서, 오리가 띠 뒤에서 고개를 내미는 것처럼 보인다 */}
+          <div className="relative z-10 flex flex-col gap-3.5 bg-sky py-6" aria-label="졸업생 이름과 참여 부서">
+            <Marquee items={data.alumni_names} big />
+            <Marquee items={data.dept_names} reverse />
+          </div>
         </div>
       )}
     </Section>
+  )
+}
+
+// 이름 띠 뒤에서 오리가 고개만 쏙 내밀고 갸웃한 뒤 다시 들어간다 (생동감, 2026-10-19).
+// 프레임은 히어로의 오리 갸웃(duck-tilt 27장, 처음과 끝이 같은 자세)을 다시 쓴다. 섹션이 보이는 동안 9초마다 한 번
+const PEEK = frameUrls('duck-tilt', 27)
+const PEEK_SIZE = 240 // 프레임 720 → 1/3. 머리 꼭대기가 캔버스 위에서 약 90px
+const PEEK_UP = 96 // 띠 위로 올라오는 높이 (머리와 안경까지)
+function PeekingDuck() {
+  const box = useRef<HTMLDivElement>(null)
+  const canvas = useRef<FrameCanvasHandle>(null)
+  const [up, setUp] = useState(false)
+  useEffect(() => {
+    if (prefersReducedMotion()) return
+    canvas.current?.draw(0)
+    const timers: number[] = []
+    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms))
+    const peek = () => {
+      setUp(true)
+      // 올라온 뒤 갸웃 프레임을 한 번 재생하고 (초당 18장, 1.5초) 다시 들어간다
+      later(() => {
+        let f = 0
+        const id = window.setInterval(() => {
+          f += 1
+          canvas.current?.draw(f)
+          if (f >= PEEK.length - 1) window.clearInterval(id)
+        }, 1000 / 18)
+        timers.push(id)
+      }, 600)
+      later(() => setUp(false), 600 + 1500 + 700)
+    }
+    let loop = 0
+    const io = new IntersectionObserver(
+      ([e]) => {
+        window.clearInterval(loop)
+        if (!e.isIntersecting) return
+        later(peek, 700)
+        loop = window.setInterval(peek, 9000)
+      },
+      { threshold: 0.6 },
+    )
+    if (box.current) io.observe(box.current.parentElement!)
+    return () => {
+      io.disconnect()
+      window.clearInterval(loop)
+      timers.forEach((t) => (window.clearTimeout(t), window.clearInterval(t)))
+    }
+  }, [])
+  return (
+    // 띠 윗변 위의 얇은 창. 오리는 창 아래에 숨어 있다가 올라온다
+    <div ref={box} className="pointer-events-none absolute right-[12%] bottom-full h-[110px] w-[240px] overflow-hidden" aria-hidden>
+      <div
+        className="absolute left-0 transition-transform duration-500 ease-out"
+        style={{ top: 110 - 90 + 8, transform: `translateY(${up ? -PEEK_UP : 0}px)` }}
+      >
+        <FrameCanvas ref={canvas} urls={PEEK} size={PEEK_SIZE} />
+      </div>
+    </div>
   )
 }
 
@@ -176,16 +238,22 @@ export function Showcase({ data, load }: { data: HomeData | null; load: HomeLoad
 }
 
 /* ---------- 5. 강사 소개 ---------- */
-// 강사는 날개를 펴서 설명하듯 움직이고(블렌더 instructor_teach, 36장 반복), 옆 말풍선의 말이 3초마다 바뀐다
+// 강사는 날개를 펴서 설명하듯 움직이고(블렌더 instructor_teach, 36장 반복), 옆 말풍선의 말이 3초마다 바뀐다.
+// 말풍선이 "이 줄은 왜 필요할까요?"일 때는 고개를 갸웃한다(instructor_tilt를 2칸씩 27장, 2026-10-19).
+// 설명은 날개를 든 자세, 갸웃은 내린 자세라 바로 바꾸면 날개가 튀어서 두 캔버스를 0.3초 겹쳐 넘긴다
 const TEACH = frameUrls('instructor-teach', 36)
+const TILT = frameUrls('instructor-tilt', 27)
 const TEACH_SIZE = 667 // 캐릭터 키가 500px이 되는 캔버스 크기 (프레임 720 안에서 키 540)
 const TEACH_LINES = ['// 돌아가는 코드와 맞는 코드는 달라요', '// 이 줄은 왜 필요할까요?', '// AI에게는 이렇게 물어보세요']
+const TILT_LINE = 1
 
 export function Instructor() {
   const t = VIRTUAL_INSTRUCTOR
   const box = useRef<HTMLDivElement>(null)
   const frames = useRef<FrameCanvasHandle>(null)
+  const tiltFrames = useRef<FrameCanvasHandle>(null)
   const [line, setLine] = useState(0)
+  const tilting = line === TILT_LINE
   useEffect(() => {
     if (!box.current) return
     if (prefersReducedMotion()) {
@@ -195,12 +263,20 @@ export function Instructor() {
     let timer = 0
     let i = 0
     let tick = 0
+    let current = 0
+    tiltFrames.current?.draw(0)
     const io = new IntersectionObserver(([e]) => {
       window.clearInterval(timer)
       if (!e.isIntersecting) return
       timer = window.setInterval(() => {
-        frames.current?.draw((i = (i + 1) % TEACH.length))
-        if (++tick % 36 === 0) setLine((l) => (l + 1) % TEACH_LINES.length) // 12장/초로 36장 = 3초
+        const k = ++tick % 36
+        if (current === TILT_LINE) tiltFrames.current?.draw(Math.min(k, TILT.length - 1)) // 27장 갸웃 뒤 남은 시간은 마지막 장면
+        else frames.current?.draw((i = (i + 1) % TEACH.length))
+        if (k === 0) {
+          current = (current + 1) % TEACH_LINES.length
+          if (current === TILT_LINE) tiltFrames.current?.draw(0)
+          setLine(current) // 12장/초로 36장 = 3초
+        }
       }, 1000 / 12)
     })
     io.observe(box.current)
@@ -220,7 +296,20 @@ export function Instructor() {
             role="img"
             aria-label="남색 조끼를 입고 안경을 쓴 강사 백조가 날개를 펴서 설명하고 있다"
           >
-            <FrameCanvas ref={frames} urls={TEACH} size={TEACH_SIZE} />
+            <FrameCanvas
+              ref={frames}
+              urls={TEACH}
+              size={TEACH_SIZE}
+              className="absolute inset-0 transition-opacity duration-300"
+              style={{ opacity: tilting ? 0 : 1 }}
+            />
+            <FrameCanvas
+              ref={tiltFrames}
+              urls={TILT}
+              size={TEACH_SIZE}
+              className="absolute inset-0 transition-opacity duration-300"
+              style={{ opacity: tilting ? 1 : 0 }}
+            />
           </div>
           {/* 말풍선: 강사 머리 오른쪽 위 */}
           <div className="absolute top-6 left-[318px] rounded-dialog bg-surface px-4 py-3 shadow-dialog" aria-live="polite">
