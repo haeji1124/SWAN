@@ -46,6 +46,8 @@ IMAGE_SIG = {
     ".webp": [b"RIFF"],
 }
 SLIDES_SIG = {".pdf": [b"%PDF"], ".pptx": [b"PK\x03\x04"], ".ppt": [b"\xd0\xcf\x11\xe0"]}
+# 실습 프로젝트 미리보기 영상 (Phase 6). mp4는 앞 4바이트 뒤에 'ftyp'가 와서 save_file에서 따로 본다
+VIDEO_SIG = {".mp4": [], ".webm": [b"\x1a\x45\xdf\xa3"]}
 
 
 # ---------- 파일 ----------
@@ -64,7 +66,8 @@ async def save_file(f: UploadFile, kinds: dict, limit: int, what: str, folder: s
         raise HTTPException(status_code=400, detail=f"{what} 파일이 비어 있어요")
     if len(data) > limit:
         raise HTTPException(status_code=413, detail=f"{what}이(가) 너무 커요 ({limit // (1024 * 1024)}MB까지)")
-    if not any(data.startswith(sig) for sig in kinds[ext]) or (ext == ".webp" and data[8:12] != b"WEBP"):
+    known = any(data.startswith(sig) for sig in kinds[ext]) or (ext == ".mp4" and data[4:8] == b"ftyp")
+    if not known or (ext == ".webp" and data[8:12] != b"WEBP"):
         raise HTTPException(status_code=400, detail=f"{what} 파일을 읽을 수 없어요. 파일이 손상됐거나 확장자가 실제 종류와 달라요")
     os.makedirs(os.path.join(UPLOAD_DIR, folder), exist_ok=True)
     rel = f"{folder}/{uuid.uuid4().hex}{ext}"

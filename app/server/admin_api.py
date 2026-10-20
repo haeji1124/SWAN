@@ -1,4 +1,4 @@
-"""관리자 화면 API (Phase 2): 기수, 신청자, 졸업생. 모든 요청은 관리자만 (auth.require_admin).
+"""관리자 화면 API (Phase 2): 기수, 신청자, 졸업생 · (Phase 6) 관리자 추가·해제. 모든 요청은 관리자만 (auth.require_admin).
 
 - 기수: 목록 · 추가 · 수정 · 모집 열기/닫기(모집 중은 하나만) · 수료 처리(신청자를 졸업생 명단으로)
 - 신청자: 기수별 표 · 엑셀로 내려받기 (취소한 사람은 따로 표시)
@@ -282,3 +282,57 @@ async def alumni_import(request: Request, db: Session = Depends(get_db)):
         db.add(Alumni(**r))
     db.commit()
     return {"added": len(parsed["rows"]), "skipped": len(parsed["duplicates"]), "errors": len(parsed["errors"])}
+
+
+# ---------- 관리자 (Phase 6) ----------
+# 목록 · 추가(사번이나 이름으로 찾기) · 해제. 자기 자신은 해제할 수 없다 (관리자가 0명이 되는 것도 이것으로 막힌다)
+
+def admin_row(db: Session, u: User) -> dict:
+    return {"id": u.id, "emp_no": u.emp_no, "name": u.name, "dept": u.dept, "type": auth.user_type(db, u)}
+
+
+@router.get("/admins")
+def admins(me: User = Depends(auth.require_admin), db: Session = Depends(get_db)):
+    rows = db.scalars(select(User).where(User.is_admin.is_(True)).order_by(User.name)).all()
+    return {"items": [{**admin_row(db, u), "me": u.id == me.id} for u in rows]}
+
+
+@router.get("/users/search")
+def search_users(q: str = "", db: Session = Depends(get_db)):
+    """관리자가 아닌 사용자를 사번이나 이름으로 찾는다 (사이트에 한 번이라도 들어온 사람만 User에 있다)"""
+    q = q.strip()
+    if len(q) < 1:
+        return {"items": []}
+    rows = db.scalars(
+        select(User).where(User.is_admin.is_(False), (User.emp_no.contains(q)) | (User.name.contains(q))).order_by(User.name).limit(10)
+    ).all()
+    return {"items": [admin_row(db, u) for u in rows]}
+
+
+def get_user(db: Session, uid: int) -> User:
+    u = db.get(User, uid)
+    if u is None:
+        raise HTTPException(status_code=404, detail="없는 사용자예요")
+    return u
+
+
+@router.post("/admins/{uid}")
+def add_admin(uid: int, db: Session = Depends(get_db)):
+    u = get_user(db, uid)
+    if u.is_admin:
+        raise HTTPException(status_code=409, detail="이미 관리자예요")
+    u.is_admin = True
+    db.commit()
+    return admin_row(db, u)
+
+
+@router.delete("/admins/{uid}")
+def remove_admin(uid: int, me: User = Depends(auth.require_admin), db: Session = Depends(get_db)):
+    if uid == me.id:
+        raise HTTPException(status_code=409, detail="자기 자신은 관리자에서 해제할 수 없어요")
+    u = get_user(db, uid)
+    if not u.is_admin:
+        raise HTTPException(status_code=409, detail="관리자가 아니에요")
+    u.is_admin = False
+    db.commit()
+    return {"ok": True}

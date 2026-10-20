@@ -1,4 +1,4 @@
-// 관리자 화면 /admin (Phase 2: 기수 · 신청자 · 졸업생 · Phase 3 수준 테스트 · Phase 4 완성작 · Phase 5 아이디어·토이. 나머지 메뉴는 자리만)
+// 관리자 화면 /admin (Phase 2: 기수 · 신청자 · 졸업생 · Phase 3 수준 테스트 · Phase 4 완성작 · Phase 5 아이디어·토이 · Phase 6 커리큘럼·관리자)
 // 왼쪽 메뉴 240px 고정, 오른쪽은 폭에 맞춰 늘어난다. 표는 가로 스크롤 없이 마지막 글 칸을 줄임표로 자른다 (구현 전달 3장).
 // 관리자만 들어온다: 화면은 App의 AdminOnly, 서버는 auth.require_admin 이 막는다.
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
@@ -26,8 +26,10 @@ import {
 import { ApiError } from '../lib/api'
 import { useMe } from '../lib/me'
 import { IdeasAdmin, ToysAdmin } from './AdminBoards'
+import { CurriculumAdmin } from './AdminCurriculum'
 import { ProjectsAdmin } from './AdminProjects'
 import { QuizAdmin } from './AdminQuiz'
+import { AdminsAdmin } from './AdminUsers'
 import { track } from '../lib/track'
 
 const MENU: { to: string; label: string; phase?: number }[] = [
@@ -38,8 +40,8 @@ const MENU: { to: string; label: string; phase?: number }[] = [
   { to: 'toys', label: '토이프로젝트' },
   { to: 'ideas', label: '아이디어' },
   { to: 'quiz', label: '수준 테스트' },
-  { to: 'curriculum', label: '커리큘럼', phase: 6 },
-  { to: 'admins', label: '관리자', phase: 6 },
+  { to: 'curriculum', label: '커리큘럼' },
+  { to: 'admins', label: '관리자' },
 ]
 
 export const errText = (e: unknown) => (e instanceof ApiError ? e.message : '잠시 후 다시 시도해 주세요')
@@ -83,6 +85,8 @@ export function Admin() {
           <Route path="projects/*" element={<ProjectsAdmin />} />
           <Route path="ideas" element={<IdeasAdmin />} />
           <Route path="toys" element={<ToysAdmin />} />
+          <Route path="curriculum" element={<CurriculumAdmin />} />
+          <Route path="admins" element={<AdminsAdmin />} />
           {MENU.filter((m) => m.phase).map((m) => (
             <Route
               key={m.to}

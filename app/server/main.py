@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 import admin_api
 import apply_api
 import auth
+import curriculum_api
 import ideas_api
 import projects_api
 import quiz_api
@@ -33,6 +34,7 @@ app.include_router(ideas_api.router)  # 아이디어 보드 (Phase 5)
 app.include_router(ideas_api.admin)  # 관리자: 아이디어 (Phase 5)
 app.include_router(toys_api.router)  # 토이프로젝트 (Phase 5)
 app.include_router(toys_api.admin)  # 관리자: 토이프로젝트 (Phase 5)
+app.include_router(curriculum_api.router)  # 관리자: 커리큘럼 (Phase 6)
 # 올린 파일(완성작 이미지·발표자료). 이름은 서버가 지은 추측하기 어려운 이름이다
 app.mount(projects_api.URL_PREFIX, StaticFiles(directory=projects_api.UPLOAD_DIR), name="uploads")
 
@@ -103,14 +105,7 @@ def home(user: Optional[User] = Depends(auth.current_user), db: Session = Depend
         "ideas": ideas_api.top_ideas(db, user),  # 아이디어 보드 미리보기: 공감 많은 순 3개
         "dept_names": depts,
         "units": [{"id": u.id, "stage": u.stage, "title": u.title, "content": u.content} for u in units],
-        "projects": [
-            {
-                "id": p.id, "title": p.title, "one_liner": p.one_liner, "detail": p.detail,
-                "topic": p.topic, "skill": p.skill,
-                "preview_image": p.preview_image, "preview_video": p.preview_video,
-            }
-            for p in projects
-        ],
+        "projects": [curriculum_api.project_out(p) for p in projects],  # 관리자가 올린 미리보기는 /uploads 주소로
     }
 
 

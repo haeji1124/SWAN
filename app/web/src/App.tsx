@@ -9,6 +9,7 @@ import { Admin } from './pages/Admin'
 import { Apply } from './pages/Apply'
 import { Home } from './pages/Home'
 import { Ideas } from './pages/Ideas'
+import { Making } from './pages/Making'
 import { Placeholder } from './pages/Placeholder'
 import { ProjectForm } from './pages/ProjectForm'
 import { ProjectDetail, Projects } from './pages/Projects'
@@ -80,7 +81,7 @@ export default function App() {
               <Route path="/toys/:id" element={<ToyDetail />} />
               <Route path="/toys/:id/edit" element={<ToyFormPage />} />
               <Route path="/ideas" element={<Ideas />} />
-              <Route path="/making" element={<Placeholder title="이렇게 만들었어요" path="/making" phase={6} />} />
+              <Route path="/making" element={<Making />} />
               <Route
                 path="/admin/*"
                 element={

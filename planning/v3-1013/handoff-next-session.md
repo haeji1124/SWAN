@@ -1,4 +1,4 @@
-# 다음 세션 시작 프롬프트 (2026-10-19 갱신 · Phase 5 완료 뒤)
+# 다음 세션 시작 프롬프트 (2026-10-20 갱신 · Phase 6 완료 뒤)
 
 아래 "붙여넣을 프롬프트"를 새 세션 첫 메시지로 그대로 붙여 넣는다. 작업 폴더는 `C:\Users\sungj\OneDrive\바탕 화면\SWAN`.
 
@@ -6,23 +6,24 @@
 
 ## 붙여넣을 프롬프트
 
-SWAN 사내 교육 사이트 작업을 이어서 하자. 지금은 Phase 5(아이디어 보드·토이프로젝트)까지 끝났고, 다음은 **Phase 6 제작 과정 화면, 커리큘럼 관리, 관리자 추가**야. 이걸로 모든 기능이 완성돼. 먼저 아래 파일들을 읽고 지금 상태를 파악해 줘.
+SWAN 사내 교육 사이트 작업을 이어서 하자. 지금은 Phase 6(제작 과정·커리큘럼 관리·관리자 추가)까지 끝나서 기획한 기능이 모두 생겼고, 다음은 **Phase 7 디자인 방향 A 적용과 3D 캐릭터**야. 먼저 아래 파일들을 읽고 지금 상태를 파악해 줘.
 
 1. `app/CLAUDE.md` — 사이트 규칙과 디자인 원칙
-2. `planning/v3-1013/handoff-next-session.md` — 이 파일. 한 일, 남은 일, 주의할 점(특히 '렌더 주의', 서버 관련 항목, 'Phase 5 완료')
-3. `planning/v3-1013/claude-code-prompt.md`의 **Phase 6** — 제작 과정 7개 구획, 커리큘럼·관리자 메뉴, 수용 기준
-4. `design/direction-a/구현-전달.md` — 방향 A 디자인 값
-5. `docs/devlog/README.md`(18단계까지)와 `planning/v3-1013/build-log.md` — 제작 과정 화면의 재료 (특히 '막혔던 순간과 해결'은 build-log에서)
-6. 지금 자리만 있는 곳: `/making`(`app/web/src/App.tsx`의 Placeholder), 관리자 '커리큘럼'·'관리자' 메뉴(`pages/Admin.tsx`의 MENU에서 phase 6). 커리큘럼 데이터는 `server/curriculum_seed.py`와 `/api/home`의 units·projects, 홈 화면은 `pages/home/`의 커리큘럼 섹션. 관리자 화면 모양은 Phase 5의 `pages/AdminBoards.tsx`, 파일 올리기는 Phase 4의 `projects_api.py`(save_file) 참고
+2. `planning/v3-1013/handoff-next-session.md` — 이 파일. 한 일, 남은 일, 주의할 점(특히 '렌더 주의', 블렌더 렌더 기준, 'Phase 6 완료')
+3. `planning/v3-1013/claude-code-prompt.md`의 **Phase 7** — 시안대로 입히기, 3D 캐릭터 반응, 확인 방법
+4. `design/direction-a/구현-전달.md` — 방향 A 값·부품 상태·움직임 표 (이게 기준)
+5. `docs/devlog/README.md`(23단계까지) — 히어로 변신·모험길·생동감처럼 Phase 7의 상당 부분을 이미 앞당겨 했다. 무엇이 남았는지 먼저 정리해야 한다
+6. 지금 화면: 홈 `app/web/src/pages/home/`, 3D는 `Hero3D.tsx`(`?hero=3d`)와 `public/models/*.glb`, 그림 프레임은 `public/frames/`
 
-읽은 뒤 먼저 개발 서버 두 개(`.claude/launch.json`의 `swan-server`, `swan-web`)를 띄우고 홈, `/ideas`, `/toys`가 뜨는지 확인해. 8000·5173·5174 포트를 지난 세션 서버가 잡고 있으면 명령줄을 확인해 SWAN 것만 끄고 다시 띄워 (다른 프로젝트가 5173을 쓸 때가 있음). 그다음 Phase 6 계획을 짧게 보여 주고, 내가 정해야 할 것이 있으면 그것만 물어본 뒤 시작해 줘.
+읽은 뒤 먼저 개발 서버 두 개(`.claude/launch.json`의 `swan-server`, `swan-web`)를 띄우고 홈, `/making`, `/admin/curriculum`이 뜨는지 확인해. 8000·5173·5174 포트를 지난 세션 서버가 잡고 있으면 명령줄을 확인해 SWAN 것만 끄고 다시 띄워 (다른 프로젝트가 5173을 쓸 때가 있음). 그다음 **Phase 7에서 이미 한 것과 남은 것을 표로** 보여 주고, 내가 정해야 할 것(예: 히어로를 그림 프레임과 3D 중 무엇으로 확정할지)만 물어본 뒤 시작해 줘.
 
-Phase 6에서 할 것 (claude-code-prompt.md 기준):
-- `/making`: 머리말 → 숫자로 보는 제작 → 타임라인(기획 → 화면 구조 → 디자인 → 구현 → 다듬기) → 실제로 쓴 프롬프트([펼쳐 보기]·[복사하기]·[전체 프롬프트 보기]) → 막혔던 순간과 해결 → SWAN 단원과의 연결 → [신청하기]. 내용은 `web/src/content/making.md` 같은 파일 하나에서 읽어 와 글만 바꿔도 화면이 바뀌게. 사내 정보는 넣지 않고, 확정되지 않은 숫자는 비워 두고 표시
-- 관리자 커리큘럼: 단원 수정, 실습 프로젝트 추가·수정·삭제·순서 바꾸기(미리보기 그림·영상 올리기 포함) → 홈에 바로 반영
-- 관리자 메뉴: 목록, [추가](사번이나 이름으로 찾기), [해제](자기 자신은 안 됨)
-- 서버 자동 시험을 `app/server/tests/`에 더하고 (임시 DB·임시 업로드 폴더, `tests/conftest.py`), 화면은 puppeteer 캡처(`tools/shot/`)로 확인
-- 끝나면 GitHub 비공개 저장소 `haeji1124/SWAN`에 커밋하고 올린다 (design/ 원본·node_modules·.venv·DB는 .gitignore로 빠짐)
+Phase 7에서 할 것 (claude-code-prompt.md 기준, 이미 한 것은 빼고):
+- 테마 값이 구현 전달 1장과 같은지 다시 맞추기. 글꼴 세 개가 번들에 들어 있는지
+- 홈과 나머지 화면을 시안과 나란히 놓고 비교해 다른 곳 맞추기 (1440×900, 1920×1080). 장식은 첫 화면에서만 넉넉히, 신청·수준 테스트·관리자처럼 읽는 화면은 깔끔하게
+- 캐릭터 그림 제자리: 신청 완료, 빈 상태
+- 3D 캐릭터: 백조를 누르면 `tilt`, 오리를 누르면 `hop`, 마우스 쪽으로 고개, 느린 PC·WebGL 없음·움직임 줄이기면 정지 그림, 실행 중 프레임 속도가 낮으면 자동 전환. 3D는 홈 인트로와 신청 접수 완료(오리 `hop`) 두 곳에만
+- 움직임: 섹션 등장, 카드 호버, 좋아요·공감의 작은 반응, 신청 완료 축하. 운영체제 "움직임 줄이기"를 따른다
+- 끝나면 시안과 다르게 만든 부분을 이유와 함께 알려 주고, GitHub 비공개 저장소 `haeji1124/SWAN`에 커밋하고 올린다 (design/ 원본·node_modules·.venv·DB는 .gitignore로 빠짐, 사이트 프레임 `app/web/public/`은 올라감)
 
 지킬 것:
 - 크레딧이 드는 생성(Higgsfield)은 내가 말할 때만 한다. 외부 도구 프롬프트에 회사·부서 이름이나 실명을 넣지 않는다. 화면 문구와 설명은 한국어로
@@ -32,7 +33,7 @@ Phase 6에서 할 것 (claude-code-prompt.md 기준):
 - 코드 스타일은 작은따옴표, 세미콜론 없음 (prettier를 기본 설정으로 돌리지 말 것)
 - 주 버튼(ink)은 한 화면에 하나. 메뉴의 [신청하기]가 늘 보이니 화면 안의 행동은 보조 버튼(sky)으로 (Phase 5에서 정함. 폼 제출과 창 안의 버튼은 예외)
 - 작업 중간에 띄우는 진행 글도 모두 한국어로
-- Phase가 끝나면 무엇을 만들었는지와 확인하는 방법을 요약하고, 이 파일의 '붙여넣을 프롬프트'를 다음 단계(Phase 7 디자인 다듬기·3D)에 맞게 고쳐 둔다
+- Phase가 끝나면 무엇을 만들었는지와 확인하는 방법을 요약하고, 이 파일의 '붙여넣을 프롬프트'를 다음 단계(Phase 8 다듬기와 사내망 반입 준비)에 맞게 고쳐 둔다
 
 ---
 
@@ -113,7 +114,7 @@ Phase 6에서 할 것 (claude-code-prompt.md 기준):
 - 마지막 신청 섹션의 날아오르는 어린 백조: `public/frames/cygnet-fly` 61장, `BottomSections.tsx`의 `FlyingCygnet`(2026-10-19부터 날아올라 로고를 띄운 뒤 내려앉음, 아래 참고). 원본·합성 `design/fly/`(compose.py). 쓴 크레딧 7.25
 - 모험길: 설명 문구를 제목 아래로. 축하 중 스크롤 붙잡기는 위에서 걸어 내려와 닿았을 때만(`lastP`). `tools/shot/region.cjs`는 훑어 내려간 뒤 4초 기다린다
 - 시험: `tests/test_phase4.py` 15개 (모두 53개). 화면 흐름 `tools/shot/phase4.cjs` — DB와 업로드 폴더를 바꾸므로 끝나면 `seed.py`
-- GitHub: 비공개 저장소 https://github.com/haeji1124/SWAN (main). `.gitignore`로 design/·public/·node_modules·.venv·data/ 제외, `core.autocrlf false`
+- GitHub: 비공개 저장소 https://github.com/haeji1124/SWAN (main). `.gitignore`로 design/·맨 위 public/·node_modules·.venv·data/ 제외 (사이트 프레임 `app/web/public/`은 저장소에 올라간다), `core.autocrlf false`
 - 캡처할 때 화면 아래 오른쪽 개발용 사용자 상자가 버튼을 가릴 수 있다 → 누르기 전에 화면 가운데로 옮긴다
 
 ## 날아오른 백조 · 로고 (2026-10-19)
@@ -134,11 +135,18 @@ Phase 6에서 할 것 (claude-code-prompt.md 기준):
 - 2026-10-19 블렌더(devlog 22단계): 강사 깃대·깃발을 날개 끝으로 6.8cm 옮겨 저장(백업 `swan-backup-before-flagfix.blend`). 걷기 강사는 `instructor_idle` 1·4·…·70번째를 강사 -25° 돌려 `walk_cam` 560px로 렌더 → (30,126) 424px 잘라 360px. 강사 섹션 갸웃 `instructor-tilt` 27장은 직교 2.6·방향 (0.3,-1,0.08)·shift x -6/720 y -89/720·720px(강사 rig 위치 그대로, 깃대 숨김) — 설명 프레임과 같은 자리. 렌더 도우미는 원래 숨김 상태를 한 번만 적고 try/finally로 되돌릴 것 (두 번 적었다가 숨김 상태가 잘못 저장된 적 있음)
 - Git Bash에서 python heredoc 문자열에 `C:\Users` 같은 경로를 넣으면 `\U`가 이스케이프로 읽혀 실패한다 → 한글·경로가 든 문서 편집은 Edit 도구로
 
+## Phase 6 완료 (2026-10-20)
+- 제작 과정 `/making`: `pages/Making.tsx` + 내용 `web/src/content/making.md`(`lib/making.ts`가 `## 구획` · `### 제목 | 보조` · `- 이름: 값` · ``` 원문으로 나눔, 값이 비면 "확정 전"). 그림은 `public/images/making/*.webp`(devlog 그림을 1200px로 줄인 것). 사용자 결정: 만든 사람 "IPS 파트", 숫자는 아는 것만(14일 = 10/7 첫 기획 ~ 10/20, 화면 22개), AI와 나눈 대화 수는 비워 둠
+- 관리자 커리큘럼: `curriculum_api.py`(단원 고치기, 실습 프로젝트 추가·고치기·지우기·`move`, 미리보기 그림 5MB·영상 mp4/webm 30MB → `uploads/curriculum/`), 화면 `pages/AdminCurriculum.tsx`. `/api/home`의 projects도 `curriculum_api.project_out`으로 내보내 미리보기 주소가 `/uploads/...`가 된다. 파일 검사 `projects_api.save_file`에 mp4(앞 4바이트 뒤 `ftyp`)·webm을 더함
+- 관리자 메뉴: `admin_api.py` 끝(`/api/admin/admins`, `/users/search`, 추가·해제, 자기 자신 해제 불가), 화면 `pages/AdminUsers.tsx`
+- 시험: `tests/test_phase6.py` 6개 (모두 75개). 화면 흐름 `tools/shot/phase6.cjs` — making.md를 잠깐 고쳤다 되돌리고, DB·업로드를 바꾸므로 끝나면 `seed.py`
+- 남은 작은 것: making.md의 'AI와 나눈 대화' 숫자, 실습 프로젝트 미리보기 그림·영상(모두 자리 그림)
+
 ## 남은 일 (순서대로 제안)
 1. ~~모험길 다듬기~~: 2026-10-19 끝 (깃대를 날개 끝으로 옮기고 걷기 강사 다시 렌더, 이정표 번호)
 2. ~~2번 영상~~: 2026-10-18 완료 (마지막 신청 섹션의 날아오르는 어린 백조)
 3. 그 밖의 생동감: ~~강사 섹션 갸웃·숫자 섹션 오리 고개 내밀기~~ 2026-10-19 끝 (devlog 22단계). 남은 것: 접수 완료 오리 뛰기(Phase 7 3D와 함께)
-4. ~~Phase 5~~: 2026-10-19 완료 → Phase 6(제작 과정·커리큘럼 관리·관리자 추가) → Phase 7 → Phase 8
+4. ~~Phase 5~~ 2026-10-19 · ~~Phase 6~~ 2026-10-20 완료 → Phase 7(디자인 방향 A 적용과 3D 캐릭터) → Phase 8(다듬기와 사내망 반입 준비)
 
 ## 주의할 점 (겪은 문제)
 - 지난 세션의 개발 서버가 8000·5174를 잡은 채 남아 있을 수 있다. 그러면 새 서버가 8001로 뜨는데, Vite는 8000으로 넘기므로 옛 서버가 응답한다. 포트를 쓰는 프로세스의 명령줄을 확인하고 SWAN 것만 끈 뒤 다시 띄운다 (5173은 다른 프로젝트가 쓰고 있을 수 있음)
